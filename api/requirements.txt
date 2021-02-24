@@ -5,3 +5,7 @@ flask-jwt-extended
 requests
 flask-socketio
 gevent-websocket
+
+werkzeug>=1,<2
+flask-session~=0.3.2
+msal>=1.7,<2

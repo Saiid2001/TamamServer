@@ -30,6 +30,7 @@ mongo.init_app(app)
 import auth
 import sockets
 import users
+from utils import _load_cache, _build_msal_app, _save_cache
 app.register_blueprint(auth.bp, url_prefix='/authenticate')
 app.register_blueprint(sockets.bp, url_prefix='/')
 app.register_blueprint(users.bp, url_prefix='/users')
@@ -38,6 +39,20 @@ app.register_blueprint(users.bp, url_prefix='/users')
 def home():
     return "Tamam Server running..."
 
+
+@app.route(app_config.REDIRECT_PATH)  # Its absolute URL must match your app's redirect_uri set in AAD
+def authorized():
+    try:
+        cache = _load_cache()
+        result = _build_msal_app(cache=cache).acquire_token_by_auth_code_flow(
+            session.get("flow", {}), request.args)
+        if "error" in result:
+            return result
+        session["user"] = result.get("id_token_claims")
+        _save_cache(cache)
+    except ValueError:  # Usually caused by CSRF
+        pass  # Simply ignore them
+    return auth.check_user(session['user'])
 @socketio.on('message')
 def handle_message(msg): 
      print(msg)
