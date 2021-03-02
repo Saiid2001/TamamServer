@@ -31,3 +31,34 @@ def _get_token_from_cache(scope=None):
         result = cca.acquire_token_silent(scope, account=accounts[0])
         _save_cache(cache)
         return result
+
+
+def queryFromArgs(keys, params):
+    query = {}
+
+    for key in keys:
+        if key in params:
+            query[key] = params[key]
+
+    return query
+
+def bsonify(data):
+    
+    if '_id' in data:
+        data['_id'] = str(data['_id'])
+    return data 
+
+def bsonifyList(data):
+    
+    for i, d in enumerate(data):
+        data[i] = bsonify(d)
+    return data
+ 
+from bson.objectid import ObjectId
+def prepQuery(query, ids): 
+
+    for id in ids:
+        if id in query:
+            query[id] = ObjectId(query[id])
+
+    return query

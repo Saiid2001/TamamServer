@@ -1,14 +1,16 @@
 import uuid
 import requests
 import os
+import json
 import msal
 import app_config
 from flask import Flask, render_template, session, request, redirect, url_for
 from flask_session import Session  # https://pythonhosted.org/Flask-Session
-from flask_jwt_extended import JWTManager
-from flask_socketio import SocketIO, send, join_room, leave_room, rooms
+from flask_jwt_extended import JWTManager, verify_jwt_in_request
+from flask_socketio import SocketIO, send, join_room, leave_room,ConnectionRefusedError
 from werkzeug.middleware.proxy_fix import ProxyFix
-from mongo import mongo
+from pymongo import MongoClient
+from services import mongo
 
 
 app = Flask(__name__)
@@ -23,7 +25,9 @@ app.config['MONGO_URI'] = 'mongodb://'+os.environ['MONGODB_USERNAME']+':'+os.env
 Session(app)
 jwt = JWTManager(app)
 socketio = SocketIO(app)
-mongo.init_app(app)
+mongo.__init__(app.config['MONGO_URI'])
+
+#scripts
 
 
 #blueprints 
@@ -35,9 +39,10 @@ app.register_blueprint(auth.bp, url_prefix='/authenticate')
 app.register_blueprint(sockets.bp, url_prefix='/')
 app.register_blueprint(users.bp, url_prefix='/users')
 
-@app.route('/')
+@app.route('/') 
 def home():
-    return "Tamam Server running..."
+    ##return "Tamam Server running..."
+    return json.dumps(dir(mongo))
 
 
 @app.route(app_config.REDIRECT_PATH)  # Its absolute URL must match your app's redirect_uri set in AAD
@@ -53,22 +58,23 @@ def authorized():
     except ValueError:  # Usually caused by CSRF
         pass  # Simply ignore them
     return auth.check_user(session['user'])
-@socketio.on('message')
-def handle_message(msg): 
-     print(msg)
-     socketio.send(msg) 
+
+@socketio.on('connect')
+def connect():
+    #to authenticate the user before connecting the socket 
+    try:
+        token = verify_jwt_in_request()
+
+    except(ExpiredSignatureError):
+        raise ConnectionRefusedError('unauthorized!')
 
 
-@socketio.on('join')
-def on_join(data):
-    room = data['room']
-    join_room(room) 
-    print(rooms) 
-    socketio.emit('user-joined-room', data, room = room)
-
+      
+import rooms  
+rooms.socketevents(socketio)
 if __name__=="__main__":
     socketio.run(app, host='0.0.0.0', port=4000, debug=True)
      
            
        
-        
+       

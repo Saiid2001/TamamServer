@@ -1,20 +1,40 @@
-from flask import Blueprint, current_app
-from mongo import mongo
+from flask import Blueprint, current_app, request
+from services import mongo
+from bson import json_util
+from utils import queryFromArgs, bsonify, bsonifyList, prepQuery
+import json
 
 bp = Blueprint('users', __name__)
 
-db = mongo.db
+db = mongo.get_default_database()
 
 user_col = db['user_collection']
-print(user_col)
 
-@bp.route('/get-user')
-def getUser():
-    pass
+@bp.route('/get-users')
+def getUsers():
+    keys = ['firstName', 'lastName', 'email']
+    query = queryFromArgs(keys, request.args)
 
-@bp.route('/add-user')
+    return json_util.dumps(queryUsers(query))
+
+def queryUsers(query):
+    query = prepQuery(query, ids = ['_id'])
+    resp = []
+    for val in user_col.find(query):
+        resp.append(val)
+    return bsonifyList(resp)
+
+def updateUsers(query, values_to_update):
+    query = prepQuery(query, ids = ['_id'])
+
+    newvals  = {'$set': values_to_update}
+    user_col.update(query, newvals)
+
+def changeUserRoom(id, room):
+    updateUsers({'_id': id}, {'room': room})
+
 def addUser():
-    users = [
+    users = [ 
         {
           'firstName': "Saiid",
           "lastName": "El Hajj Chehade", 
@@ -35,9 +55,7 @@ def addUser():
 def removeUser(user):
     pass
 
-@bp.route('/get-users')
-def getUsers():
-    pass
+
   
 
  
@@ -59,8 +77,8 @@ def initialize():
 
     for user in users:
         user_col.insert_one(user)
+        print(user)
 
-if __name__ == "__main__":
-    if (user_col.find_one({'firstName': "Saiid"}) is None):
-        initialize()
+if (user_col.find_one({'firstName': "Saiid"}) is None):
+    initialize()
 

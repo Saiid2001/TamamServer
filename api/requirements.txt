@@ -1,5 +1,6 @@
 Flask==1.1.2
 Flask-PyMongo==2.2.0
+pymongo
 
 flask-jwt-extended
 requests

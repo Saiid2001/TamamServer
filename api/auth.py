@@ -19,13 +19,12 @@ bp = Blueprint('auth', __name__)
 
 
 def check_user(ms_user_token):
-    if "@mail.aub.edu" in ms_user_token['preferred_username']:
-        tokens = generate_tokens(ms_user_token['aud'])
+    resp = users.queryUsers({'email':ms_user_token['preferred_username']  })
+    if len(resp)>0:
+        usr = resp[0]
+        tokens = generate_tokens(str(usr['_id']))
         #return tokens
         #grequests.get('http://127.0.0.1/callback', params = tokens)
-
-        
-
         return redirect('http://localhost/callback?access_token='+tokens['access_token']+"&refresh_token="+tokens['refresh_token'])
     else:
         return make_response(('Could not login',401))
@@ -52,21 +51,7 @@ def refresh_token():
         return None, 400
 
 
-def require_login():
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            resp = requests.get(
-                      current_app.config['API_ENDPOINT'] + 'auth/get-user-session',
-                      params={'sid': session.get('sila_session', '').split('|')[0], 'access': access_level},
-                      cookies={'sila_session': session.get('sila_session')}
-                  )
-            if (resp.ok):
-                return func(*args, **kwargs)
-            else:
-                return redirect('/')
-        return wrapper
-    return decorator
+
 
 
 @bp.route("/")
