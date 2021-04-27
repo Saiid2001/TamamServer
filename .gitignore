@@ -1,2 +1,9 @@
-mongo
-.idea
+mongo/
+.idea/
+.vs/
+media/
+__pycache__/
+flask_session/
+api/flask_session/
+api/__pycache__/
+api/.vs/
