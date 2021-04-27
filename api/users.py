@@ -1,14 +1,23 @@
-from flask import Blueprint, current_app, request
+from flask import Blueprint, current_app, request, jsonify
 from services import mongo
 from bson import json_util
 from utils import queryFromArgs, bsonify, bsonifyList, prepQuery
 import json
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 bp = Blueprint('users', __name__)
 
 db = mongo.get_default_database()
 
 user_col = db['user_collection']
+
+@bp.route('/get-user')
+@jwt_required()
+def getUser():
+
+    uid = get_jwt_identity()
+
+    return jsonify(queryUsers({'_id': uid})[0]) 
 
 @bp.route('/get-users')
 def getUsers():
@@ -63,21 +72,20 @@ def initialize():
 
     users = [
         {
-          'firstName': "Saiid",
-          "lastName": "El Hajj Chehade", 
-          "email": "sae55@mail.aub.edu"
+            'firstName': "Saiid",
+            "lastName": "El Hajj Chehade", 
+            "email": "sae55@mail.aub.edu"
         },
         {
-          'firstName': "Karim",
-          "lastName": "El Hajj Chehade", 
-          "email": "saidhajjchehade@hotmail.com"
+            'firstName': "Karim",
+            "lastName": "El Hajj Chehade", 
+            "email": "saidhajjchehade@hotmail.com"
         },
         
         ]
 
     for user in users:
         user_col.insert_one(user)
-        print(user)
 
 if (user_col.find_one({'firstName': "Saiid"}) is None):
     initialize()

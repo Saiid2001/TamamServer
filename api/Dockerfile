@@ -10,6 +10,6 @@ CMD ["uwsgi", "--ini", "uwsgi.ini"]
 CMD [ "gunicorn", "-w", "4", "--bind", "0.0.0.0:5000", "wsgi"]
 CMD python app.py
 
-EXPOSE 4000
+EXPOSE 5000
 
 ENTRYPOINT ["python", "/api/app.py"]

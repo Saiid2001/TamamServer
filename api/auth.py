@@ -42,8 +42,9 @@ def generate_tokens(user_id):
 
 @bp.route('/refresh-token', methods=['POST'])
 def refresh_token():
-    verify_jwt_in_request(refresh=True)
-    try:
+    
+    try: 
+        verify_jwt_in_request(refresh=True)
         current_user = get_jwt_identity()
         new_token = create_access_token(identity=current_user, fresh=False)
         return jsonify({'access_token': new_token}),200
@@ -59,15 +60,17 @@ def index():
     if not session.get("user"):
         return redirect(url_for("auth.login"))
     return session.get("user")
-
-@bp.route("/login")
+ 
+@bp.route("/login")  
 def login():
     # Technically we could use empty list [] as scopes to do just sign in,
     # here we choose to also collect end user consent upfront
+    
     session["flow"] = _build_auth_code_flow(scopes=app_config.SCOPE)
+    print(app_config.CLIENT_ID)
 
     return redirect(session["flow"]["auth_uri"])
-    #return generate_tokens("hello")
+
 
 
 
@@ -78,7 +81,7 @@ def logout():
         app_config.AUTHORITY + "/oauth2/v2.0/logout" +
         "?post_logout_redirect_uri=" + url_for("index", _external=True))
 
-@bp.route("/graphcall")
+@bp.route("/graphcall") 
 def graphcall():
     token = _get_token_from_cache(app_config.SCOPE)
     if not token:
