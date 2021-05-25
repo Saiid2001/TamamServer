@@ -1,3 +1,6 @@
+from gevent import monkey
+monkey.patch_all()
+
 import uuid
 import requests
 import os
@@ -103,7 +106,7 @@ if __name__=="__main__":
     import pyforkurento
     kclient = pyforkurento.client.KurentoClient('ws://tamam-mcu:8888/kurento')
     
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)  
     
        
 
