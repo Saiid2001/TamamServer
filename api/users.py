@@ -27,6 +27,7 @@ def getUsers():
     return json_util.dumps(queryUsers(query))
 
 def queryUsers(query):
+
     query = prepQuery(query, ids = ['_id'])
     resp = []
     for val in user_col.find(query):
@@ -41,6 +42,9 @@ def updateUsers(query, values_to_update):
 
 def changeUserRoom(id, room):
     updateUsers({'_id': id}, {'room': room})
+
+def changeUserGroup(id, group):
+    updateUsers({'_id': id}, {'group': group})
 
 def addUser():
     users = [ 

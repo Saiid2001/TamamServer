@@ -1,7 +1,10 @@
+from gevent import monkey
+monkey.patch_all()
+
 import uuid
 import requests
 import os
-import datetime
+import datetime 
 import json
 import msal
 import app_config
@@ -42,9 +45,9 @@ app.register_blueprint(sockets.bp, url_prefix='/')
 app.register_blueprint(users.bp, url_prefix='/users')
 app.register_blueprint(rooms.bp, url_prefix='/rooms')
 
-@app.route('/') 
+@app.route('/')  
 def home():
-    ##return "Tamam Server running..."
+    ##return "Tamam Server running..." 
     return json.dumps(dir(mongo))
 
 

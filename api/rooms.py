@@ -4,7 +4,7 @@ from bson import json_util
 from utils import queryFromArgs, bsonify, bsonifyList, prepQuery
 from flask_socketio import join_room, leave_room
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from users import queryUsers, changeUserRoom
+from users import queryUsers, changeUserRoom, changeUserGroup
 import json
 
 
@@ -118,6 +118,25 @@ def socketevents(socketio):
         join_room(room)  
         socketio.emit('user-joined-room', {'user': user}, room = room, include_self=False) 
         return users_in_room
+
+    @socketio.on('join-group')
+    @jwt_required()
+    def on_join_group(data):
+        userid = get_jwt_identity()
+        user = queryUsers({'_id':userid})[0]
+        join_room(data['group'])
+        changeUserGroup(userid, data['group'])
+        socketio.emit('user-joined-group', {'user': userid, 'group': data['group']}, room = user['room'], include_self=False) 
+
+    @socketio.on('leave-group')
+    @jwt_required()
+    def on_leave_group():
+        userid = get_jwt_identity()
+        user = queryUsers({'_id':userid})[0]
+        group = user['group']
+        leave_room(group)
+        changeUserGroup(userid, "NONE")
+        socketio.emit('user-joined-group', {'user': userid, 'group': group}, room = user['room'], include_self=False) 
            
     @socketio.on('leave')
     @jwt_required()
