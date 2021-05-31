@@ -96,6 +96,7 @@ def leave(userid, socketio):
     socketio.emit('user-left-room', {'user': userid},room = room, include_self=False)
 
 
+import webRTCTurn as rtc
 
 def socketevents(socketio):
 
@@ -134,9 +135,12 @@ def socketevents(socketio):
         userid = get_jwt_identity()
         user = queryUsers({'_id':userid})[0]
         group = user['group']
+        room = user['room']
         leave_room(group)
+        rtc.onLeave(user,room+"-"+group)
+        leave_room(room+"-"+group)
         changeUserGroup(userid, "NONE")
-        socketio.emit('user-joined-group', {'user': userid, 'group': group}, room = user['room'], include_self=False) 
+        socketio.emit('user-left-group', {'user': userid, 'group': group}, room = user['room'], include_self=False) 
            
     @socketio.on('leave')
     @jwt_required()

@@ -25,6 +25,12 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 rooms = {}
 
+def onLeave(user, room):
+
+    rooms[room].remove(user)
+    if en(room[room]) ==0:
+        del rooms[room]
+
 def socketEvents(socketio):
 
     @socketio.on('join-call')
@@ -32,6 +38,7 @@ def socketEvents(socketio):
     def onJoin(data):
         uid = get_jwt_identity()
         roomId = data['room']
+        join_room(roomId)
 
         if roomId in rooms:
             # if the room exists 
@@ -40,7 +47,6 @@ def socketEvents(socketio):
         else:
             # create new room
             rooms[roomId] = [uid] 
-            join_room(roomId)
             emit('call-room-created', {'room': roomId}) 
 
 
@@ -53,7 +59,7 @@ def socketEvents(socketio):
     @socketio.on('start-call')
     @jwt_required()
     def onStartCall(data):
-        socketio.emit('start-call', room = data['room'], include_self=False)
+        socketio.emit('start-call', room = data['room'], include_self=False) 
 
 #  socket.on('webrtc_offer', (event) => {
 #    console.log(`Broadcasting webrtc_offer event to peers in room ${event.roomId}`)
@@ -85,7 +91,7 @@ def socketEvents(socketio):
 
     @socketio.on('track-status-changed')
     @jwt_required()
-    def onCandidate(data): 
+    def statusChanged(data): 
         socketio.emit('track-status-changed',data, room = data['room'], include_self=False)
 
-#}) 
+#})  
