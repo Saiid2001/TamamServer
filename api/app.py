@@ -47,8 +47,8 @@ app.register_blueprint(rooms.bp, url_prefix='/rooms')
 
 @app.route('/')  
 def home():
-    ##return "Tamam Server running..." 
-    return json.dumps(dir(mongo))
+    return "Tamam Server running..." 
+    ##return json.dumps(dir(mongo))
 
 
 @app.route(app_config.REDIRECT_PATH)  # Its absolute URL must match your app's redirect_uri set in AAD
@@ -93,7 +93,11 @@ kms.getClient(emptyCallback)
 kms.socketEvents(socketio)
  
 
+import webRTCTurn
 
+webRTCTurn.socketEvents(socketio)
+
+ 
 
 #kms
 

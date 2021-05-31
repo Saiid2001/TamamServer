@@ -37,7 +37,7 @@ def queryUsers(query):
 def updateUsers(query, values_to_update):
     query = prepQuery(query, ids = ['_id'])
 
-    newvals  = {'$set': values_to_update}
+    newvals  = {'$set': values_to_update} 
     user_col.update(query, newvals)
 
 def changeUserRoom(id, room):
@@ -58,11 +58,17 @@ def addUser():
           "lastName": "El Hajj Chehade", 
           "email": "saidhajjchehade@hotmail.com"
         },
+        {
+          'firstName': "Nader",
+          "lastName": "Zantout", 
+          "email": "nwz05@mail.aub.edu"
+        },
         
         ]
      
     for user in users:
-        user_col.insert_one(user)
+        if (user_col.find_one({'firstName': user['firstName']}) is None):
+            user_col.insert_one(user)
     return "Added"
 
 def removeUser(user):
@@ -72,25 +78,9 @@ def removeUser(user):
   
 
  
-def initialize():
+def initialize(): 
 
-    users = [
-        {
-            'firstName': "Saiid",
-            "lastName": "El Hajj Chehade", 
-            "email": "sae55@mail.aub.edu"
-        },
-        {
-            'firstName': "Karim",
-            "lastName": "El Hajj Chehade", 
-            "email": "saidhajjchehade@hotmail.com"
-        },
-        
-        ]
+    addUser()
 
-    for user in users:
-        user_col.insert_one(user)
-
-if (user_col.find_one({'firstName': "Saiid"}) is None):
-    initialize()
+initialize()
 
