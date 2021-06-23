@@ -28,7 +28,7 @@ rooms = {}
 def onLeave(user, room):
 
     rooms[room].remove(user)
-    if en(room[room]) ==0:
+    if len(room[room]) ==0:
         del rooms[room]
 
 def socketEvents(socketio):
@@ -48,7 +48,7 @@ def socketEvents(socketio):
             # create new room
             rooms[roomId] = [uid] 
             emit('call-room-created', {'room': roomId}) 
-
+ 
              
 
 #  // These events are emitted to all the sockets connected to the same room except the sender.
@@ -57,27 +57,27 @@ def socketEvents(socketio):
 #    socket.broadcast.to(roomId).emit('start_call')
 #  })
     @socketio.on('start-call')
-    @jwt_required()
+    @jwt_required() 
     def onStartCall(data):
-        socketio.emit('start-call', room = data['room'], include_self=False) 
+        socketio.emit('start-call',{'user': data['user']}, room = data['room'], include_self=False) 
 
 #  socket.on('webrtc_offer', (event) => {
 #    console.log(`Broadcasting webrtc_offer event to peers in room ${event.roomId}`)
 #    socket.broadcast.to(event.roomId).emit('webrtc_offer', event.sdp)
 #  })
-    @socketio.on('webrtc-offer')
+    @socketio.on('webrtc-offer') 
     @jwt_required()
     def onOffer(data):
-        socketio.emit('webrtc-offer',{ 'sdp': data['sdp']}, room = data['room'], include_self=False)
+        socketio.emit('webrtc-offer',{ 'user':data['user'], 'sdp': data['sdp']}, room = data['room'], include_self=False)
 
 #  socket.on('webrtc_answer', (event) => {
 #    console.log(`Broadcasting webrtc_answer event to peers in room ${event.roomId}`)
 #    socket.broadcast.to(event.roomId).emit('webrtc_answer', event.sdp)
 #  })
     @socketio.on('webrtc-answer')
-    @jwt_required()
+    @jwt_required() 
     def onAnswer(data):
-        socketio.emit('webrtc-answer',{'sdp': data['sdp']}, room = data['room'], include_self=False)
+        socketio.emit('webrtc-answer',{'user':data['user'],'sdp': data['sdp']}, room = data['room'], include_self=False)
 
 #  socket.on('webrtc_ice_candidate', (event) => {
 #    console.log(`Broadcasting webrtc_ice_candidate event to peers in room ${event.roomId}`)
