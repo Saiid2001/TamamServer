@@ -51,23 +51,34 @@ def addUser():
         {
           'firstName': "Saiid",
           "lastName": "El Hajj Chehade", 
-          "email": "sae55@mail.aub.edu"
+          "email": "sae55@mail.aub.edu",
+          'avatar': {
+              'index': 0
+          }
         },
         {
           'firstName': "Karim",
           "lastName": "El Hajj Chehade", 
-          "email": "saidhajjchehade@hotmail.com"
+          "email": "saidhajjchehade@hotmail.com",
+          'avatar': {
+              'index': 1
+          }
         },
         {
           'firstName': "Nader",
           "lastName": "Zantout", 
-          "email": "nwz05@mail.aub.edu"
+          "email": "nwz05@mail.aub.edu",
+          'avatar': {
+              'index': 1
+          }
         },
         
         ]
      
     for user in users:
-        if (user_col.find_one({'firstName': user['firstName']}) is None):
+
+        user_obj = user_col.find_one({'firstName': user['firstName']})
+        if  user_obj is None:
             user_col.insert_one(user)
     return "Added"
 

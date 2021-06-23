@@ -49,7 +49,7 @@ def socketEvents(socketio):
             rooms[roomId] = [uid] 
             emit('call-room-created', {'room': roomId}) 
 
-
+             
 
 #  // These events are emitted to all the sockets connected to the same room except the sender.
 #  socket.on('start_call', (roomId) => {

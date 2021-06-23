@@ -1,3 +1,4 @@
+from flask.json import jsonify
 from gevent import monkey
 monkey.patch_all()
 
@@ -65,6 +66,13 @@ def authorized():
         pass  # Simply ignore them
     return auth.check_user(session['user'])
 
+@app.route("/getAToken-dev")  # Its absolute URL must match your app's redirect_uri set in AAD
+def authorized_dev():
+    
+ 
+  
+    return auth.check_user({'preferred_username': request.args['email']})
+
 @socketio.on('connect')
 def connect():
     #to authenticate the user before connecting the socket 
@@ -102,15 +110,16 @@ webRTCTurn.socketEvents(socketio)
 #kms
 
 
+ 
+ 
+  
 
-
-
-
-if __name__=="__main__": 
+if __name__=="__main__":    
     import pyforkurento
     kclient = pyforkurento.client.KurentoClient('ws://tamam-mcu:8888/kurento')
     
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    #, keyfile = './security/keyp.pem', certfile = './security/cert.pem'
     
        
 
