@@ -117,9 +117,10 @@ webRTCTurn.socketEvents(socketio)
 if __name__=="__main__":    
     import pyforkurento
     kclient = pyforkurento.client.KurentoClient('ws://tamam-mcu:8888/kurento')
-    
+
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
     #, keyfile = './security/keyp.pem', certfile = './security/cert.pem'
+
     
        
 

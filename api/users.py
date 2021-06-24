@@ -72,6 +72,11 @@ def addUser():
               'index': 1
           }
         },
+        {
+            'firstName': "Nader",
+            "lastName": "Zantout",
+            "email": "nwz05@mail.aub.edu"
+        },
         
         ]
      
@@ -90,7 +95,6 @@ def removeUser(user):
 
  
 def initialize(): 
-
     addUser()
 
 initialize()
