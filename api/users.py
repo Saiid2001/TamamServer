@@ -54,6 +54,11 @@ def addUser():
           "lastName": "El Hajj Chehade", 
           "email": "saidhajjchehade@hotmail.com"
         },
+        {
+            'firstName': "Nader",
+            "lastName": "Zantout",
+            "email": "nwz05@mail.aub.edu"
+        },
         
         ]
      
@@ -80,6 +85,11 @@ def initialize():
             'firstName': "Karim",
             "lastName": "El Hajj Chehade", 
             "email": "saidhajjchehade@hotmail.com"
+        },
+        {
+            'firstName': "Nader",
+            "lastName": "Zantout",
+            "email": "nwz05@mail.aub.edu"
         },
         
         ]
