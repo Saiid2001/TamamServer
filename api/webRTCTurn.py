@@ -94,4 +94,21 @@ def socketEvents(socketio):
     def statusChanged(data): 
         socketio.emit('track-status-changed',data, room = data['room'], include_self=False)
 
+
+    @socketio.on('waving-to-group')
+    def onWave(data):
+        socketio.emit('waving-to-group', {'user':data['user']}, room = data['room'], include_self= False)
+    
+    @socketio.on('accepted-to-group')
+    def onAcceptWave(data):
+        socketio.emit('accepted-to-group', {'room':data['room']}, room = data['user'], include_self= False)
+
+    @socketio.on('rejected-from-group')
+    def onAcceptWave(data):
+        socketio.emit('rejected-from-group', {'room':data['room']}, room = data['user'], include_self= False)
+
+    @socketio.on('canceled-waving')
+    def onAcceptWave(data):
+        socketio.emit('canceled-waving', {'user':data['user']}, room = data['room'], include_self= False) 
+    
 #})  
