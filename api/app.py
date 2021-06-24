@@ -1,10 +1,11 @@
+from flask.json import jsonify
 from gevent import monkey
 monkey.patch_all()
 
 import uuid
 import requests
 import os
-import datetime
+import datetime 
 import json
 import msal
 import app_config
@@ -45,10 +46,10 @@ app.register_blueprint(sockets.bp, url_prefix='/')
 app.register_blueprint(users.bp, url_prefix='/users')
 app.register_blueprint(rooms.bp, url_prefix='/rooms')
 
-@app.route('/') 
+@app.route('/')  
 def home():
-    ##return "Tamam Server running..."
-    return json.dumps(dir(mongo))
+    return "Tamam Server running..." 
+    ##return json.dumps(dir(mongo))
 
 
 @app.route(app_config.REDIRECT_PATH)  # Its absolute URL must match your app's redirect_uri set in AAD
@@ -64,6 +65,13 @@ def authorized():
     except ValueError:  # Usually caused by CSRF
         pass  # Simply ignore them
     return auth.check_user(session['user'])
+
+@app.route("/getAToken-dev")  # Its absolute URL must match your app's redirect_uri set in AAD
+def authorized_dev():
+    
+ 
+  
+    return auth.check_user({'preferred_username': request.args['email']})
 
 @socketio.on('connect')
 def connect():
@@ -93,20 +101,26 @@ kms.getClient(emptyCallback)
 kms.socketEvents(socketio)
  
 
+import webRTCTurn
 
+webRTCTurn.socketEvents(socketio)
+
+ 
 
 #kms
 
 
+ 
+ 
+  
 
-
-
-
-if __name__=="__main__": 
+if __name__=="__main__":    
     import pyforkurento
     kclient = pyforkurento.client.KurentoClient('ws://tamam-mcu:8888/kurento')
-    
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)  
+
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    #, keyfile = './security/keyp.pem', certfile = './security/cert.pem'
+
     
        
 
