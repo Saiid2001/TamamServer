@@ -4,7 +4,7 @@ from bson import json_util
 from utils import queryFromArgs, bsonify, bsonifyList, prepQuery
 from flask_socketio import join_room, leave_room
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from users import queryUsers, changeUserRoom
+from users import queryUsers, changeUserRoom, changeUserGroup
 import json
 
 
@@ -62,30 +62,140 @@ def initialize():
         {
             'name': "Main Gate",
             "type": "social", 
-            "maxCapacity": 60
+            "maxCapacity": 60,
+            
         },
         {
             'name': "Jaffet Upper",
             "type": "social", 
-            "maxCapacity": 50
+            "maxCapacity": 50,
+            'layout': {
+                'background':{
+                    'type': 'tile',
+                    'id': 'tile_white_1'
+                },
+
+                'objects': {
+
+                    'tables': [
+                        { "id": 0, "capacity": 6, "position": { "x": 400, "y": 100 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 1, "capacity": 6, "position": { "x": 400, "y": 500 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 2, "capacity": 6, "position": { "x": 400, "y": 900 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 3, "capacity": 6, "position": { "x": 900, "y": 100 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 4, "capacity": 6, "position": { "x": 900, "y": 500 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 5, "capacity": 6, "position": { "x": 900, "y": 900 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 6, "capacity": 6, "position": { "x": 2000, "y": 100 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 7, "capacity": 6, "position": { "x": 2000, "y": 500 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 8, "capacity": 6, "position": { "x": 2000, "y": 900 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 9, "capacity": 6, "position": { "x": 2500, "y": 100 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 10, "capacity": 6, "position": { "x": 2500, "y": 500 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 11, "capacity": 6, "position": { "x": 2500, "y": 900 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}
+                    ],
+                    'desks': [
+                        
+                    ]
+                }
+            },
+            'thumbnail':{
+                'isLocal': True,
+                'id': 'jaffet_upper'
+            }
         },
         {
             'name':"Jaffet Library",
             "type": "study", 
-            "maxCapacity": 50
+            "maxCapacity": 50,
+            'layout': {
+                'background':{
+                    'type': 'tile',
+                    'id': 'tile_white_1',
+
+                },
+
+                'objects': {
+
+                    'tables': [
+                        
+                    ],
+                    'desks': [
+                        { "id": 0, "capacity": 1, "position": { "x": 400, "y": 100 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} }, 
+                        { "id": 1, "capacity": 1, "position": { "x": 400, "y": 310 }, 'style':{'isLocal': True, 'id': 'desk_jafet_right'}  }, 
+                        { "id": 2, "capacity": 1, "position": { "x": 400, "y": 520 }, 'style':{'isLocal': True, 'id': 'desk_jafet_right'}  }, 
+                        { "id": 3, "capacity": 1, "position": { "x": 400, "y": 770 }, 'style':{'isLocal': True, 'id': 'desk_jafet_right'}  },
+                        { "id": 4, "capacity": 1, "position": { "x": 400, "y": 980 }, 'style':{'isLocal': True, 'id': 'desk_jafet_right'}  },  
+                        { "id": 5, "capacity": 1, "position": { "x": 400, "y": 1190 , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} } },  
+
+                        { "id": 7, "capacity": 1, "position": { "x": 800, "y": 100 }, 'style':{'isLocal': True, 'id': 'desk_jafet_right'}  }, 
+                        { "id": 8, "capacity": 1, "position": { "x": 800, "y": 310 }, 'style':{'isLocal': True, 'id': 'desk_jafet_right'}  }, 
+                        { "id": 9, "capacity": 1, "position": { "x": 800, "y": 520 }, 'style':{'isLocal': True, 'id': 'desk_jafet_right'}  }, 
+                        { "id": 10, "capacity": 1, "position": { "x": 800, "y": 770 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} },
+                        { "id": 11, "capacity": 1, "position": { "x": 800, "y": 980 }, 'style':{'isLocal': True, 'id': 'desk_jafet_right'}  },  
+                        { "id": 12, "capacity": 1, "position": { "x": 800, "y": 1190 }, 'style':{'isLocal': True, 'id': 'desk_jafet_right'}  },  
+
+                        { "id": 13, "capacity": 1, "position": { "x": 1200, "y": 100 }, 'style':{'isLocal': True, 'id': 'desk_jafet_right'}  }, 
+                        { "id": 14, "capacity": 1, "position": { "x": 1200, "y": 310 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} }, 
+                        { "id": 15, "capacity": 1, "position": { "x": 1200, "y": 520 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} }, 
+                        { "id": 16, "capacity": 1, "position": { "x": 1200, "y": 770 }, 'style':{'isLocal': True, 'id': 'desk_jafet_right'}  },
+                        { "id": 17, "capacity": 1, "position": { "x": 1200, "y": 980 }, 'style':{'isLocal': True, 'id': 'desk_jafet_right'}  },  
+                        { "id": 18, "capacity": 1, "position": { "x": 1200, "y": 1190 }, 'style':{'isLocal': True, 'id': 'desk_jafet_right'}  },  
+
+                        { "id": 19, "capacity": 1, "position": { "x": 1600, "y": 100 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} }, 
+                        { "id": 20, "capacity": 1, "position": { "x": 1600, "y": 310 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} }, 
+                        { "id": 21, "capacity": 1, "position": { "x": 1600, "y": 520 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} }, 
+                        { "id": 22, "capacity": 1, "position": { "x": 1600, "y": 770 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} },
+                        { "id": 23, "capacity": 1, "position": { "x": 1600, "y": 980 }, 'style':{'isLocal': True, 'id': 'desk_jafet_right'}  },  
+                        { "id": 24, "capacity": 1, "position": { "x": 1600, "y": 1190 }, 'style':{'isLocal': True, 'id': 'desk_jafet_right'}  },  
+
+                        { "id": 25, "capacity": 1, "position": { "x": 2000, "y": 100 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} }, 
+                        { "id": 26, "capacity": 1, "position": { "x": 2000, "y": 310 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} }, 
+                        { "id": 27, "capacity": 1, "position": { "x": 2000, "y": 520 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} }, 
+                        { "id": 28, "capacity": 1, "position": { "x": 2000, "y": 770 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} },
+                        { "id": 29, "capacity": 1, "position": { "x": 2000, "y": 980 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} },  
+                        { "id": 30, "capacity": 1, "position": { "x": 2000, "y": 1190 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} },  
+
+                        { "id": 31, "capacity": 1, "position": { "x": 2400, "y": 100 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} }, 
+                        { "id": 32, "capacity": 1, "position": { "x": 2400, "y": 310 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} }, 
+                        { "id": 33, "capacity": 1, "position": { "x": 2400, "y": 520 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} }, 
+                        { "id": 34, "capacity": 1, "position": { "x": 2400, "y": 770 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} },
+                        { "id": 35, "capacity": 1, "position": { "x": 2400, "y": 980 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} },  
+                        { "id": 36, "capacity": 1, "position": { "x": 2400, "y": 1190 } , 'style':{'isLocal': True, 'id': 'desk_jafet_right'} },
+                    ]
+                }
+            },
+            'thumbnail':{
+                'isLocal': True,
+                'id': 'jaffet_library'
+            }
         },
         {
             'name':"BDH",
             "type": "social", 
-            "maxCapacity": 30
+            "maxCapacity": 30,
+            'layout': {
+                'background':{
+                    'type': 'tile',
+                    'id': 'tile_white_1'
+                },
+                'objects':{}
+            },
+            'thumbnail':{
+                'isLocal': True,
+                'id': 'bdh'
+            }
         }
         ]
 
     for room in rooms:
-        rooms_col.insert_one(room)
 
-if (rooms_col.find_one({'name': "Jaffet Upper"}) is None):
-    initialize()
+        room_obj = rooms_col.find_one({'name': room['name']})
+        if (room_obj is None):
+            rooms_col.insert_one(room)
+        else:
+            if room_obj['name'] == "None":
+                rooms_col.update({'_id': room_obj['_id']}, {'$set': {'layout': room['layout'], 'thumbnail': room['thumbnail']}}) 
+
+
+initialize()
 
 
 def leave(userid, socketio):
@@ -96,6 +206,7 @@ def leave(userid, socketio):
     socketio.emit('user-left-room', {'user': userid},room = room, include_self=False)
 
 
+import webRTCTurn as rtc
 
 def socketevents(socketio):
 
@@ -118,6 +229,28 @@ def socketevents(socketio):
         join_room(room)  
         socketio.emit('user-joined-room', {'user': user}, room = room, include_self=False) 
         return users_in_room
+
+    @socketio.on('join-group')
+    @jwt_required()
+    def on_join_group(data):
+        userid = get_jwt_identity()
+        user = queryUsers({'_id':userid})[0]
+        join_room(data['group'])
+        changeUserGroup(userid, data['group'])
+        socketio.emit('user-joined-group', {'user': userid, 'group': data['group']}, room = user['room'], include_self=False) 
+
+    @socketio.on('leave-group')
+    @jwt_required()
+    def on_leave_group():
+        userid = get_jwt_identity()
+        user = queryUsers({'_id':userid})[0]
+        group = user['group']
+        room = user['room']
+        leave_room(group)
+        rtc.onLeave(user,room+"-"+group)
+        leave_room(room+"-"+group)
+        changeUserGroup(userid, "NONE")
+        socketio.emit('user-left-group', {'user': userid, 'group': group}, room = user['room'], include_self=False) 
            
     @socketio.on('leave')
     @jwt_required()

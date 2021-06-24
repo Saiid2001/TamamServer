@@ -68,8 +68,14 @@ def login():
     
     session["flow"] = _build_auth_code_flow(scopes=app_config.SCOPE)
     print(app_config.CLIENT_ID)
+    print(session['flow']['auth_uri']) 
 
     return redirect(session["flow"]["auth_uri"])
+
+@bp.route('/login-dev')
+def login_dev():
+
+    return '<form action="/getAToken-dev" method="get"><input type="text" placeholder="email" name="email"/><input type = "submit"/></form>'
 
 
 

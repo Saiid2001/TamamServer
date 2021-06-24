@@ -27,6 +27,7 @@ def getUsers():
     return json_util.dumps(queryUsers(query))
 
 def queryUsers(query):
+
     query = prepQuery(query, ids = ['_id'])
     resp = []
     for val in user_col.find(query):
@@ -36,23 +37,40 @@ def queryUsers(query):
 def updateUsers(query, values_to_update):
     query = prepQuery(query, ids = ['_id'])
 
-    newvals  = {'$set': values_to_update}
+    newvals  = {'$set': values_to_update} 
     user_col.update(query, newvals)
 
 def changeUserRoom(id, room):
     updateUsers({'_id': id}, {'room': room})
+
+def changeUserGroup(id, group):
+    updateUsers({'_id': id}, {'group': group})
 
 def addUser():
     users = [ 
         {
           'firstName': "Saiid",
           "lastName": "El Hajj Chehade", 
-          "email": "sae55@mail.aub.edu"
+          "email": "sae55@mail.aub.edu",
+          'avatar': {
+              'index': 0
+          }
         },
         {
           'firstName': "Karim",
           "lastName": "El Hajj Chehade", 
-          "email": "saidhajjchehade@hotmail.com"
+          "email": "saidhajjchehade@hotmail.com",
+          'avatar': {
+              'index': 1
+          }
+        },
+        {
+          'firstName': "Nader",
+          "lastName": "Zantout", 
+          "email": "nwz05@mail.aub.edu",
+          'avatar': {
+              'index': 1
+          }
         },
         {
             'firstName': "Nader",
@@ -63,7 +81,10 @@ def addUser():
         ]
      
     for user in users:
-        user_col.insert_one(user)
+
+        user_obj = user_col.find_one({'firstName': user['firstName']})
+        if  user_obj is None:
+            user_col.insert_one(user)
     return "Added"
 
 def removeUser(user):
@@ -73,30 +94,8 @@ def removeUser(user):
   
 
  
-def initialize():
+def initialize(): 
+    addUser()
 
-    users = [
-        {
-            'firstName': "Saiid",
-            "lastName": "El Hajj Chehade", 
-            "email": "sae55@mail.aub.edu"
-        },
-        {
-            'firstName': "Karim",
-            "lastName": "El Hajj Chehade", 
-            "email": "saidhajjchehade@hotmail.com"
-        },
-        {
-            'firstName': "Nader",
-            "lastName": "Zantout",
-            "email": "nwz05@mail.aub.edu"
-        },
-        
-        ]
-
-    for user in users:
-        user_col.insert_one(user)
-
-if (user_col.find_one({'firstName': "Saiid"}) is None):
-    initialize()
+initialize()
 

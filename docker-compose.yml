@@ -27,12 +27,6 @@ services:
     - "8888:8888"
     - "4000-5100:4000-5100/udp"
   
-  environment:
-    KMS_MIN_PORT: 4000
-    KMS_MAX_PORT: 5000
-    GST_DEBUG=2,Kurento*: 5
-
-  
 
  api:
   build: 
