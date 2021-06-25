@@ -174,9 +174,40 @@ def initialize():
             'layout': {
                 'background':{
                     'type': 'tile',
-                    'id': 'tile_white_1'
+                    'id': 'tile_black_1'
                 },
-                'objects':{}
+                'objects':{
+                    'tables':[
+                        { "id": 0, "capacity": 6, "position": { "x": 400, "y": 100 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 1, "capacity": 6, "position": { "x": 400, "y": 400 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 2, "capacity": 6, "position": { "x": 400, "y": 700 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        
+                        { "id": 3, "capacity": 6, "position": { "x": 800, "y": 100 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 4, "capacity": 6, "position": { "x": 800, "y": 400 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 5, "capacity": 6, "position": { "x": 800, "y": 700 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+
+                        { "id": 6, "capacity": 6, "position": { "x": 1200, "y": 100 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 7, "capacity": 6, "position": { "x": 1200, "y": 400 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 8, "capacity": 6, "position": { "x": 1200, "y": 700 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        
+                        { "id": 9, "capacity": 6, "position": { "x": 1600, "y": 100 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 10, "capacity": 6, "position": { "x": 1600, "y": 400 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                        { "id": 11, "capacity": 6, "position": { "x": 1600, "y": 700 } ,'style':{'isLocal': True, 'id': 'table_jafet_right'}}, 
+                    ],
+                    'static':[
+                        { "id": 0, "position": { "x": 400, "y": 300 } ,'style':{'isLocal': True, 'id': 'bush_1'}},
+                        { "id": 1, "position": { "x": 400, "y": 600 } ,'style':{'isLocal': True, 'id': 'bush_1'}},
+
+                        { "id": 2, "position": { "x": 800, "y": 300 } ,'style':{'isLocal': True, 'id': 'bush_1'}},
+                        { "id": 3, "position": { "x": 800, "y": 600 } ,'style':{'isLocal': True, 'id': 'bush_1'}},
+
+                        { "id": 4, "position": { "x": 1200, "y": 300 } ,'style':{'isLocal': True, 'id': 'bush_1'}},
+                        { "id": 5, "position": { "x": 1200, "y": 600 } ,'style':{'isLocal': True, 'id': 'bush_1'}},
+
+                        { "id": 6, "position": { "x": 1600, "y": 300 } ,'style':{'isLocal': True, 'id': 'bush_1'}},
+                        { "id": 7, "position": { "x": 1600, "y": 600 } ,'style':{'isLocal': True, 'id': 'bush_1'}},
+                    ]
+                }
             },
             'thumbnail':{
                 'isLocal': True,
@@ -191,7 +222,7 @@ def initialize():
         if (room_obj is None):
             rooms_col.insert_one(room)
         else:
-            if room_obj['name'] == "None":
+            if room_obj['name'] == "BDH":
                 rooms_col.update({'_id': room_obj['_id']}, {'$set': {'layout': room['layout'], 'thumbnail': room['thumbnail']}}) 
 
 
