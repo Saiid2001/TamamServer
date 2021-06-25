@@ -78,6 +78,7 @@ def connect():
     #to authenticate the user before connecting the socket 
     try:
         token = verify_jwt_in_request()
+        join_room(get_jwt_identity())
     except Exception as exp:
         print(exp)   
         raise ConnectionRefusedError('unauthorized!')
