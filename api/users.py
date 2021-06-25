@@ -21,10 +21,10 @@ def getUser():
 
 @bp.route('/get-users')
 def getUsers():
-    keys = ['firstName', 'lastName', 'email']
+    keys = ['firstName', 'lastName', 'email', 'room']
     query = queryFromArgs(keys, request.args)
 
-    return json_util.dumps(queryUsers(query))
+    return jsonify(queryUsers(query))
 
 def queryUsers(query):
 
