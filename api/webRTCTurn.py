@@ -68,7 +68,7 @@ def socketEvents(socketio):
     @socketio.on('webrtc-offer') 
     @jwt_required()
     def onOffer(data):
-        socketio.emit('webrtc-offer',{ 'user':data['user'], 'sdp': data['sdp']}, room = data['room'], include_self=False)
+        socketio.emit('webrtc-offer',{ 'user':data['user'], 'sdp': data['sdp'], 'destination':data['destination']}, room = data['room'], include_self=False)
 
 #  socket.on('webrtc_answer', (event) => {
 #    console.log(`Broadcasting webrtc_answer event to peers in room ${event.roomId}`)
@@ -77,7 +77,7 @@ def socketEvents(socketio):
     @socketio.on('webrtc-answer')
     @jwt_required() 
     def onAnswer(data):
-        socketio.emit('webrtc-answer',{'user':data['user'],'sdp': data['sdp']}, room = data['room'], include_self=False)
+        socketio.emit('webrtc-answer',{'user':data['user'],'sdp': data['sdp'], 'destination':data['destination']}, room = data['room'], include_self=False)
 
 #  socket.on('webrtc_ice_candidate', (event) => {
 #    console.log(`Broadcasting webrtc_ice_candidate event to peers in room ${event.roomId}`)
