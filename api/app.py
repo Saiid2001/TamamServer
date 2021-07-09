@@ -94,15 +94,15 @@ def disconnect():
 rooms.socketevents(socketio)
 
 
-import kms
+#import kms
 def emptyCallback(*args):
     pass
 
-kms.getClient(emptyCallback)
-kms.socketEvents(socketio)
- 
+#kms.getClient(emptyCallback) 
+#kms.socketEvents(socketio)
+  
 
-import webRTCTurn
+import webRTCTurn  
 
 webRTCTurn.socketEvents(socketio)
 
@@ -116,8 +116,8 @@ webRTCTurn.socketEvents(socketio)
   
 
 if __name__=="__main__":    
-    import pyforkurento
-    kclient = pyforkurento.client.KurentoClient('ws://tamam-mcu:8888/kurento')
+    #import pyforkurento
+    #kclient = pyforkurento.client.KurentoClient('ws://tamam-mcu:8888/kurento')
 
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
     #, keyfile = './security/keyp.pem', certfile = './security/cert.pem'

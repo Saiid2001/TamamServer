@@ -27,16 +27,20 @@ rooms = {}
 
 def onLeave(user, room):
 
-    rooms[room].remove(user)
-    if len(room[room]) ==0:
-        del rooms[room]
+    if room in rooms:
+
+        if user in rooms[room]:
+            rooms[room].remove(user)
+            leave_room(room)
+        if len(rooms[room]) ==0:
+            del rooms[room] 
 
 def socketEvents(socketio):
 
     @socketio.on('join-call')
-    @jwt_required()
-    def onJoin(data):
-        uid = get_jwt_identity()
+    @jwt_required() 
+    def onJoin(data): 
+        uid = get_jwt_identity()  
         roomId = data['room']
         join_room(roomId)
 
@@ -48,7 +52,7 @@ def socketEvents(socketio):
             # create new room
             rooms[roomId] = [uid] 
             emit('call-room-created', {'room': roomId}) 
- 
+  
              
 
 #  // These events are emitted to all the sockets connected to the same room except the sender.
@@ -59,7 +63,7 @@ def socketEvents(socketio):
     @socketio.on('start-call')
     @jwt_required() 
     def onStartCall(data):
-        socketio.emit('start-call',{'user': data['user']}, room = data['room'], include_self=False) 
+        socketio.emit('start-call',{'user': data['user']}, room = data['room'], include_self=True) 
 
 #  socket.on('webrtc_offer', (event) => {
 #    console.log(`Broadcasting webrtc_offer event to peers in room ${event.roomId}`)
@@ -68,16 +72,16 @@ def socketEvents(socketio):
     @socketio.on('webrtc-offer') 
     @jwt_required()
     def onOffer(data):
-        socketio.emit('webrtc-offer',{ 'user':data['user'], 'sdp': data['sdp']}, room = data['room'], include_self=False)
+        socketio.emit('webrtc-offer',{ 'user':data['user'], 'sdp': data['sdp'], 'destination':data['destination']}, room = data['room'], include_self=False)
 
 #  socket.on('webrtc_answer', (event) => {
 #    console.log(`Broadcasting webrtc_answer event to peers in room ${event.roomId}`)
 #    socket.broadcast.to(event.roomId).emit('webrtc_answer', event.sdp)
 #  })
-    @socketio.on('webrtc-answer')
+    @socketio.on('webrtc-answer') 
     @jwt_required() 
     def onAnswer(data):
-        socketio.emit('webrtc-answer',{'user':data['user'],'sdp': data['sdp']}, room = data['room'], include_self=False)
+        socketio.emit('webrtc-answer',{'user':data['user'],'sdp': data['sdp'], 'destination':data['destination']}, room = data['room'], include_self=False)
 
 #  socket.on('webrtc_ice_candidate', (event) => {
 #    console.log(`Broadcasting webrtc_ice_candidate event to peers in room ${event.roomId}`)
@@ -110,5 +114,12 @@ def socketEvents(socketio):
     @socketio.on('canceled-waving')
     def onAcceptWave(data):
         socketio.emit('canceled-waving', {'user':data['user']}, room = data['room'], include_self= False)   
+
+
+
+    #Chat
+    @socketio.on('chat-send-message')
+    def onMessageToSend(message):
+        socketio.emit('chat-message-recv', message, room=message['destination'], include_self = False)
     
-#})  
+#})    
