@@ -63,7 +63,13 @@ def initialize():
             'name': "Main Gate",
             "type": "social", 
             "maxCapacity": 60,
-            
+            'mapInfo': {
+                'pos': {
+                    'x': 1120,
+                    'y': 915
+                },
+                'layer': 0
+            }
         },
         {
             'name': "Jaffet Upper",
@@ -99,6 +105,13 @@ def initialize():
             'thumbnail':{
                 'isLocal': True,
                 'id': 'jaffet_upper'
+            },
+            'mapInfo': {
+                'pos': {
+                    'x': 1142,
+                    'y': 740
+                },
+                'layer': 1
             }
         },
         {
@@ -165,6 +178,13 @@ def initialize():
             'thumbnail':{
                 'isLocal': True,
                 'id': 'jaffet_library'
+            },
+            'mapInfo': {
+                'pos': {
+                    'x': 1149,
+                    'y': 763
+                },
+                'layer': 0
             }
         },
         {
@@ -212,17 +232,24 @@ def initialize():
             'thumbnail':{
                 'isLocal': True,
                 'id': 'bdh'
+            },
+            'mapInfo': {
+                'pos': {
+                    'x': 1130,
+                    'y': 583
+                },
+                'layer': 0
             }
         }
         ]
-
+    #rooms_col.delete_many({})
     for room in rooms:
 
         room_obj = rooms_col.find_one({'name': room['name']})
         if (room_obj is None):
             rooms_col.insert_one(room)
         else:
-            if room_obj['name'] == "BDH":
+            if room_obj['name'] == "None":
                 rooms_col.update({'_id': room_obj['_id']}, {'$set': {'layout': room['layout'], 'thumbnail': room['thumbnail']}}) 
 
 
@@ -239,7 +266,9 @@ def leave(userid, socketio):
     leave_room(room+"-"+group) 
     leave_room(room)
     changeUserRoom(userid, 'NONE') 
-    socketio.emit('user-left-room', {'user': userid},room = room, include_self=False)
+    socketio.emit('user-left-room', {'user': userid},room = room, include_self=True)
+    if room != "map":
+        socketio.emit('user-left-room-to-map', {'user': user, 'room': room}, room = "map", include_self = False)
 
 
 import webRTCTurn as rtc
@@ -262,8 +291,11 @@ def socketevents(socketio):
         changeUserRoom(userid, room)
         
         
-        join_room(room)  
-        socketio.emit('user-joined-room', {'user': user}, room = room, include_self=False) 
+        join_room(room)
+
+        socketio.emit('user-joined-room', {'user': user}, room = room, include_self=False)
+        socketio.emit('user-joined-room-to-map', {'user': user, 'room': room}, room = "map", include_self=False)
+
         return users_in_room
 
     @socketio.on('join-group')
@@ -293,4 +325,16 @@ def socketevents(socketio):
     def on_leave():   
         userid = get_jwt_identity()
         return leave(userid, socketio)
- 
+
+
+    @socketio.on('enter-map')
+    @jwt_required()
+    def on_enter_map():
+        userid = get_jwt_identity()
+        user = queryUsers({'_id': userid})[0]
+        room = "map"
+
+        changeUserRoom(userid, room)
+
+        join_room(room)
+        socketio.emit('user-joined-room', {'user': user}, room=room, include_self=False)

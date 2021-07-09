@@ -47,6 +47,7 @@ def changeUserGroup(id, group):
     updateUsers({'_id': id}, {'group': group})
 
 def addUser():
+    #user_col.delete_many({})
     users = [ 
         {
           'firstName': "Saiid",
@@ -73,9 +74,12 @@ def addUser():
           }
         },
         {
-            'firstName': "Nader",
+            'firstName': "Ahmad",
             "lastName": "Zantout",
-            "email": "nwz05@mail.aub.edu"
+            "email": "nwzantout@hotmail.com",
+            'avatar': {
+                'index': 0
+            }
         },
         
         ]
@@ -85,6 +89,7 @@ def addUser():
         user_obj = user_col.find_one({'firstName': user['firstName']})
         if  user_obj is None:
             user_col.insert_one(user)
+
     return "Added"
 
 def removeUser(user):
