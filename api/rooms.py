@@ -261,7 +261,9 @@ def leave(userid, socketio):
     room = user['room']
     leave_room(room)
     changeUserRoom(userid, 'NONE') 
-    socketio.emit('user-left-room', {'user': userid},room = room, include_self=False)
+    socketio.emit('user-left-room', {'user': userid},room = room, include_self=True)
+    if room != "map":
+        socketio.emit('user-left-room-to-map', {'user': user, 'room': room}, room = "map", include_self = False)
 
 
 import webRTCTurn as rtc
@@ -284,9 +286,11 @@ def socketevents(socketio):
         changeUserRoom(userid, room)
         
         
-        join_room(room)  
+        join_room(room)
+
         socketio.emit('user-joined-room', {'user': user}, room = room, include_self=False)
-        #socketio.emit('user-joined-room', {'user': user}, broadcast = True )
+        socketio.emit('user-joined-room-to-map', {'user': user, 'room': room}, room = "map", include_self=False)
+
         return users_in_room
 
     @socketio.on('join-group')
