@@ -1,5 +1,5 @@
 from flask import Flask, Blueprint, Response,session, redirect, render_template, make_response, request
-from utils import _build_auth_code_flow
+from utils import _build_auth_code_flow,bsonify
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
@@ -14,6 +14,7 @@ import app_config
 import requests
 import msal
 import users
+from flask
 
 bp = Blueprint('auth', __name__)
 
@@ -80,6 +81,14 @@ def login_dev():
 @bp.route('/request-signup', methods=['POST'])
 def request_signup():
     data = request.json
+    #data = {'email': 'nwz05@mail.aub.edu', 'firstname':'Nader', 'lastname' : 'Zantout'}
+    checkQuery = users.queryUsers({'email':data['email']})
+    if len(checkQuery)>0:
+        return make_response("User already in database", 403)
+    user = {'email': data['email'], 'firstName': data['firstname'], 'lastName': data['lastname'], 'status': 'pending'}
+    users.addUser(user)
+
+    return bsonify(user)
 
 @bp.route('/finalize-signup')
 def finalize_signup():

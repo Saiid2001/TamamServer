@@ -46,9 +46,12 @@ def changeUserRoom(id, room):
 def changeUserGroup(id, group):
     updateUsers({'_id': id}, {'group': group})
 
-def addUser():
-    #user_col.delete_many({})
-    users = [ 
+def addUser(user):
+    user_col.insert_one(user)
+
+def addUsersDev():
+    user_col.delete_many({})
+    users = [
         {
           'firstName': "Saiid",
           "lastName": "El Hajj Chehade", 
@@ -99,8 +102,10 @@ def removeUser(user):
   
 
  
-def initialize(): 
-    addUser()
+def initialize():
+    user_col.delete_many({})
+    #addUser()
+    pass
 
 initialize()
 
