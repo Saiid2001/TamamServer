@@ -16,9 +16,10 @@ from flask_socketio import SocketIO, send, join_room, leave_room,ConnectionRefus
 from werkzeug.middleware.proxy_fix import ProxyFix
 from pymongo import MongoClient
 from services import mongo
+from flask_mail import Mail,Message
 
 app = Flask(__name__)
-  
+
 #config
 app.config.from_object(app_config)
 app.config['JWT_SECRET_KEY']='thisisunbelievablydumbtohardcodepassword'
@@ -26,12 +27,13 @@ app.config['SECRET_KEY'] = "thisisanotherdumbhardcodedpassword"
 app.config['MONGO_URI'] = 'mongodb://'+os.environ['MONGODB_USERNAME']+':'+os.environ["MONGODB_PASSWORD"]+'@'+os.environ['MONGODB_HOSTNAME']+':27017/'+os.environ['MONGODB_DATABASE']
 app.config['JWT_ACCESS_TOKEN_EXPIRES']=datetime.timedelta(days=7)
 app.config['JWT_REFRESH_TOKEN_EXPIRES']=datetime.timedelta(days=100)
+
 #services
 Session(app)
 jwt = JWTManager(app)
 socketio = SocketIO(app)
 mongo.__init__(app.config['MONGO_URI'])
-  
+
 #scripts 
      
  
@@ -68,9 +70,7 @@ def authorized():
 
 @app.route("/getAToken-dev")  # Its absolute URL must match your app's redirect_uri set in AAD
 def authorized_dev():
-    
- 
-  
+
     return auth.check_user({'preferred_username': request.args['email']})
 
 @socketio.on('connect')
@@ -111,15 +111,14 @@ webRTCTurn.socketEvents(socketio)
 #kms
 
 
- 
- 
-  
+
 
 if __name__=="__main__":    
     #import pyforkurento
     #kclient = pyforkurento.client.KurentoClient('ws://tamam-mcu:8888/kurento')
 
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+
     #, keyfile = './security/keyp.pem', certfile = './security/cert.pem'
 
     

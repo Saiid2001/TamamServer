@@ -103,7 +103,7 @@ def removeUser(user):
 
  
 def initialize():
-    user_col.delete_many({})
+    #user_col.delete_many({})
     #addUser()
     pass
 
