@@ -108,7 +108,7 @@ def initialize():
             },
             'mapInfo': {
                 'pos': {
-                    'x': 1142,
+                    'x': 1162,
                     'y': 740
                 },
                 'layer': 1
@@ -181,8 +181,8 @@ def initialize():
             },
             'mapInfo': {
                 'pos': {
-                    'x': 1149,
-                    'y': 763
+                    'x': 1128,
+                    'y': 765
                 },
                 'layer': 0
             }

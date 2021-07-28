@@ -6,6 +6,7 @@ flask-jwt-extended
 requests
 flask-socketio
 gevent-websocket
+Flask-Mail
 
 werkzeug>=1,<2
 flask-session~=0.3.2

@@ -25,9 +25,9 @@ def check_user(ms_user_token):
         tokens = generate_tokens(str(usr['_id']))
         #return tokens
         #grequests.get('http://127.0.0.1/callback', params = tokens)
-        return redirect('http://localhost/callback?access_token='+tokens['access_token']+"&refresh_token="+tokens['refresh_token'])
+        return redirect('http://localhost/callback?access_token='+tokens['access_token']+"&refresh_token="+tokens['refresh_token']+'request_signup=0')
     else:
-        return make_response(('Could not login',401))
+        return redirect('http://localhost/callback?request_signup=1&email='+ms_user_token['preferred_username'])
 
 def generate_tokens(user_id):
 
@@ -77,8 +77,13 @@ def login_dev():
 
     return '<form action="/getAToken-dev" method="get"><input type="text" placeholder="email" name="email"/><input type = "submit"/></form>'
 
+@bp.route('/request-signup', methods=['POST'])
+def request_signup():
+    data = request.json
 
-
+@bp.route('/finalize-signup')
+def finalize_signup():
+    pass
 
 @bp.route("/logout")
 def logout():
