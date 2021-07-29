@@ -19,6 +19,18 @@ def getUser():
 
     return jsonify(queryUsers({'_id': uid})[0]) 
 
+@bp.route('/get-user-status/<id>')
+def getUserStatus(id):
+
+    usr = queryUsers({'_id': id})
+
+    if len(usr):
+        usr = usr[0]
+        return jsonify({'status': usr['status']})
+    else:
+        
+        return jsonify({'status': 'unavailable'}) 
+
 @bp.route('/get-users')
 def getUsers():
     keys = ['firstName', 'lastName', 'email', 'room']
@@ -52,14 +64,14 @@ def addUser(user):
 def addUsersDev():
     user_col.delete_many({})
     users = [
-        {
-          'firstName': "Saiid",
-          "lastName": "El Hajj Chehade", 
-          "email": "sae55@mail.aub.edu",
-          'avatar': {
-              'index': 0
-          }
-        },
+        # {
+        #   'firstName': "Saiid",
+        #   "lastName": "El Hajj Chehade", 
+        #   "email": "sae55@mail.aub.edu",
+        #   'avatar': {
+        #       'index': 0
+        #   }
+        # },
         {
           'firstName': "Karim",
           "lastName": "El Hajj Chehade", 
@@ -93,10 +105,13 @@ def addUsersDev():
         if  user_obj is None:
             user_col.insert_one(user)
 
+    user_col.delete_many({'firstName': "Saiid"}) 
+
     return "Added"
 
-def removeUser(user):
-    pass
+def removeUser(userId):
+    
+    user_col.delete_one({'_id': userId})
 
 
   
@@ -106,6 +121,6 @@ def initialize():
     #user_col.delete_many({})
     #addUser()
     pass
-
-initialize()
+ 
+initialize() 
 

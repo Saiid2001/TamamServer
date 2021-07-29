@@ -23,6 +23,12 @@ def check_user(ms_user_token):
     resp = users.queryUsers({'email':ms_user_token['preferred_username']  })
     if len(resp)>0:
         usr = resp[0]
+
+        if usr['status'] != 'complete':
+
+            users.removeUser(usr['_id'])
+            return redirect('http://localhost/callback?request_signup=1&email='+ms_user_token['preferred_username'])
+
         tokens = generate_tokens(str(usr['_id']))
         #return tokens
         #grequests.get('http://127.0.0.1/callback', params = tokens)
@@ -123,18 +129,23 @@ def confirm_email(token):
     id = confirm_token(token)
     if id=="None":
         return make_response("Token invalid, or has already expired.", 403)
-    users.updateUsers({"_id": id}, {'status': 'confirmed'})
+
     user = users.queryUsers({'_id': id})[0]
-    return bsonify(user)
+    if user['status'] == 'pending':
+        users.updateUsers({"_id": id}, {'status': 'confirmed'})
+        return bsonify(user)
+    else:
+        return make_response("User already verified", 403)
 
 @bp.route('/finalize-signup', methods=['POST'])
 def finalize_signup():
     #request.form should contain the user ID
-    data = request.form
+    data = request.json
+    print(data)
     #if len(users.queryUsers({'email': 'nwz05@mail.aub.edu'})) == 0:
     #    return make_response("User not found. Please create an account.", 403)
     #id = users.queryUsers({'email': 'nwz05@mail.aub.edu'})[0]["_id"]
-    data = {'_id': id, 'major': 'Electrical and Computer Engineering', 'gender': 'Male', 'age': 20, 'avatar': 'stuff'}
+    # data = {'_id': id, 'major': 'Electrical and Computer Engineering', 'gender': 'Male', 'age': 20, 'avatar': 'stuff'}
 
 
     if len(users.queryUsers({'_id': data['_id']}))==0:
@@ -144,13 +155,12 @@ def finalize_signup():
         return make_response("Please confirm your account before proceeding.", 403)
     elif user['status'] == 'complete':
         return make_response('You have already completed your profile.', 403)
-    id = data['_id']
-    del data['_id']
-    data['status'] = 'complete'
-    users.updateUsers({'_id': id}, data)
+    id = data['_id'] 
+    users.updateUsers({'_id': id}, data['data'])
+    users.updateUsers({'_id': id}, {'status':'complete'})
     user = users.queryUsers({'_id': id})[0]
-    return bsonify(user)
-
+    return bsonify(user) 
+  
 
 @bp.route("/logout")
 def logout():
