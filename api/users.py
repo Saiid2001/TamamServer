@@ -110,8 +110,8 @@ def addUsersDev():
     return "Added"
 
 def removeUser(userId):
-    
-    user_col.delete_one({'_id': userId})
+    query = prepQuery({'_id': userId}, ['_id'])
+    user_col.delete_many(query)
 
 
   
@@ -122,5 +122,5 @@ def initialize():
     #addUser()
     pass
  
-initialize() 
-
+initialize()  
+ 

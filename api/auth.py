@@ -21,11 +21,11 @@ bp = Blueprint('auth', __name__)
 
 def check_user(ms_user_token):
     resp = users.queryUsers({'email':ms_user_token['preferred_username']  })
-    if len(resp)>0:
+    if len(resp)>0: 
         usr = resp[0]
 
         if usr['status'] != 'complete':
-
+            print(usr)
             users.removeUser(usr['_id'])
             return redirect('http://localhost/callback?request_signup=1&email='+ms_user_token['preferred_username'])
 

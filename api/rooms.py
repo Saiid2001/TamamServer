@@ -260,10 +260,11 @@ def leave(userid, socketio):
 
     user = queryUsers({'_id':userid})[0]
     room = user['room']
-    group = user['group']
-    leave_room(group)
-    rtc.onLeave(user,room+"-"+group)
-    leave_room(room+"-"+group) 
+    if 'group' in user:
+        group = user['group']
+        leave_room(group)
+        rtc.onLeave(user,room+"-"+group)
+        leave_room(room+"-"+group) 
     leave_room(room)
     changeUserRoom(userid, 'NONE') 
     socketio.emit('user-left-room', {'user': userid},room = room, include_self=True)
