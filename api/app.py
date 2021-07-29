@@ -42,11 +42,13 @@ import auth
 import sockets
 import users
 import rooms  
+import relations
 from utils import _load_cache, _build_msal_app, _save_cache
 app.register_blueprint(auth.bp, url_prefix='/authenticate')
 app.register_blueprint(sockets.bp, url_prefix='/')
 app.register_blueprint(users.bp, url_prefix='/users')
 app.register_blueprint(rooms.bp, url_prefix='/rooms')
+app.register_blueprint(relations.bp, url_prefix='/relations')
 
 @app.route('/')  
 def home():
@@ -92,6 +94,7 @@ def disconnect():
       
 
 rooms.socketevents(socketio)
+relations.socketevents(socketio)
 
 
 #import kms
@@ -102,7 +105,7 @@ def emptyCallback(*args):
 #kms.socketEvents(socketio)
   
 
-import webRTCTurn  
+import webRTCTurn   
 
 webRTCTurn.socketEvents(socketio)
 

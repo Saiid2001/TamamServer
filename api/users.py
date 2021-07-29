@@ -42,6 +42,7 @@ def queryUsers(query):
 
     query = prepQuery(query, ids = ['_id'])
     resp = []
+    print(query) 
     for val in user_col.find(query):
         resp.append(val)
     return bsonifyList(resp)

@@ -42,16 +42,20 @@ def queryFromArgs(keys, params):
 
     return query
 
-def bsonify(data):
+def bsonify(data,extra_ids = []):
     
     if '_id' in data:
         data['_id'] = str(data['_id'])
+
+    for id in extra_ids:
+        data[id] = str(data[id])
+    
     return data 
 
-def bsonifyList(data):
+def bsonifyList(data, extra_ids=[]):
     
     for i, d in enumerate(data):
-        data[i] = bsonify(d)
+        data[i] = bsonify(d, extra_ids)
     return data
  
 from bson.objectid import ObjectId
