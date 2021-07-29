@@ -19,6 +19,18 @@ def getUser():
 
     return jsonify(queryUsers({'_id': uid})[0]) 
 
+@bp.route('/get-user-status/<id>')
+def getUserStatus(id):
+
+    usr = queryUsers({'_id': id})
+
+    if len(usr):
+        usr = usr[0]
+        return jsonify({'status': usr['status']})
+    else:
+        
+        return jsonify({'status': 'unavailable'}) 
+
 @bp.route('/get-users')
 def getUsers():
     keys = ['firstName', 'lastName', 'email', 'room']
@@ -46,17 +58,20 @@ def changeUserRoom(id, room):
 def changeUserGroup(id, group):
     updateUsers({'_id': id}, {'group': group})
 
-def addUser():
-    #user_col.delete_many({})
-    users = [ 
-        {
-          'firstName': "Saiid",
-          "lastName": "El Hajj Chehade", 
-          "email": "sae55@mail.aub.edu",
-          'avatar': {
-              'index': 0
-          }
-        },
+def addUser(user):
+    user_col.insert_one(user)
+
+def addUsersDev():
+    user_col.delete_many({})
+    users = [
+        # {
+        #   'firstName': "Saiid",
+        #   "lastName": "El Hajj Chehade", 
+        #   "email": "sae55@mail.aub.edu",
+        #   'avatar': {
+        #       'index': 0
+        #   }
+        # },
         {
           'firstName': "Karim",
           "lastName": "El Hajj Chehade", 
@@ -90,17 +105,22 @@ def addUser():
         if  user_obj is None:
             user_col.insert_one(user)
 
+    user_col.delete_many({'firstName': "Saiid"}) 
+
     return "Added"
 
-def removeUser(user):
-    pass
+def removeUser(userId):
+    query = prepQuery({'_id': userId}, ['_id'])
+    user_col.delete_many(query)
 
 
   
 
  
-def initialize(): 
-    addUser()
-
-initialize()
-
+def initialize():
+    #user_col.delete_many({})
+    #addUser()
+    pass
+ 
+initialize()  
+ 

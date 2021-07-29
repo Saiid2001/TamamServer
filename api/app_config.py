@@ -26,3 +26,11 @@ ENDPOINT = 'https://graph.microsoft.com/v1.0/users'  # This resource requires no
 SCOPE = ["User.ReadBasic.All"]
 
 SESSION_TYPE = "filesystem"  # Specifies the token cache should be stored in server-side session
+
+CONFIRMATION_SECRET_KEY = "71936c948e54da7e642e83c9a2cdcf00"
+# For email confirmation, placeholder key for use only during testing
+# More secure method to store this during deployment is advisable
+# Generated using import os; print(os.urandom(16).hex())
+
+SECURITY_PASSWORD_SALT = "tablesalt"
+# Used by itsdangerous along with the key to derive the key used in email confirmation

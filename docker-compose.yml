@@ -16,16 +16,16 @@ services:
     MONGODB_DATA_DIR: /data/db
     MONDODB_LOG_DIR: /dev/null
     
- media:
-  image: kurento/kurento-media-server:latest
-  volumes:
-    - ./media:/data/media
-  container_name: tamam-mcu
-  expose:
-    - "8888"
-  ports:
-    - "8888:8888"
-    - "4000-5100:4000-5100/udp"
+ # media:
+  # image: kurento/kurento-media-server:latest
+  # volumes:
+    # - ./media:/data/media
+  # container_name: tamam-mcu
+  # expose:
+    # - "8888"
+  # ports:
+    # - "8888:8888"
+    # - "4000-5100:4000-5100/udp"
   
 
  api:
@@ -49,9 +49,9 @@ services:
       KURENTO_URI: ws://0.0.0.0:8888/kurento
   depends_on:
    - database
-   - media
-  links:
-   - "media:kms"
+  # - media
+#  links:
+  # - "media:kms"
    
    
 

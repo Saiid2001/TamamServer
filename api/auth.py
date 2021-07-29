@@ -1,5 +1,5 @@
 from flask import Flask, Blueprint, Response,session, redirect, render_template, make_response, request
-from utils import _build_auth_code_flow
+from utils import _build_auth_code_flow,bsonify
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
@@ -14,20 +14,27 @@ import app_config
 import requests
 import msal
 import users
+import mail
+from itsdangerous import URLSafeTimedSerializer
 
 bp = Blueprint('auth', __name__)
 
-
 def check_user(ms_user_token):
     resp = users.queryUsers({'email':ms_user_token['preferred_username']  })
-    if len(resp)>0:
+    if len(resp)>0: 
         usr = resp[0]
+
+        if usr['status'] != 'complete':
+            print(usr)
+            users.removeUser(usr['_id'])
+            return redirect('http://localhost/callback?request_signup=1&email='+ms_user_token['preferred_username'])
+
         tokens = generate_tokens(str(usr['_id']))
         #return tokens
         #grequests.get('http://127.0.0.1/callback', params = tokens)
-        return redirect('http://localhost/callback?access_token='+tokens['access_token']+"&refresh_token="+tokens['refresh_token'])
+        return redirect('http://localhost/callback?access_token='+tokens['access_token']+"&refresh_token="+tokens['refresh_token']+'request_signup=0')
     else:
-        return make_response(('Could not login',401))
+        return redirect('http://localhost/callback?request_signup=1&email='+ms_user_token['preferred_username'])
 
 def generate_tokens(user_id):
 
@@ -39,6 +46,26 @@ def generate_tokens(user_id):
         'refresh_token': refresh_token
     }
 
+# Email tokens using itsdangerous
+# Courtesy of https://realpython.com/handling-email-confirmation-in-flask/
+# Generates a token using the itsdangerous algorithm into which the user id is embedded
+def generate_confirmation_token(id):
+    serializer = URLSafeTimedSerializer(app_config.CONFIRMATION_SECRET_KEY)
+    return serializer.dumps(id, salt=app_config.SECURITY_PASSWORD_SALT)
+
+# Checks if token has expired
+# If not, regenerates user ID from token and returns it
+def confirm_token(token, expiration=180):
+    serializer = URLSafeTimedSerializer(app_config.CONFIRMATION_SECRET_KEY)
+    try:
+        id = serializer.loads(
+            token,
+            salt=app_config.SECURITY_PASSWORD_SALT,
+            max_age=expiration
+        )
+    except:
+        return "None"
+    return id
 
 @bp.route('/refresh-token', methods=['POST'])
 def refresh_token():
@@ -77,8 +104,63 @@ def login_dev():
 
     return '<form action="/getAToken-dev" method="get"><input type="text" placeholder="email" name="email"/><input type = "submit"/></form>'
 
+@bp.route('/request-signup', methods=['POST'])
+def request_signup():
+    data = request.form
+    #data = {'email': 'nwz05@mail.aub.edu', 'firstname': 'Nader', 'lastname': 'Zantout'}
+    checkQuery = users.queryUsers({'email': data['email']})
+    if len(checkQuery)>0:
+        if checkQuery[0]['status']=='pending':
+            return make_response("Account awaiting verification", 403)
+        elif checkQuery[0]['status']=='confirmed':
+            return make_response("User confirmed, please complete your profile", 403)
+        else:
+            return make_response("User already in database", 403)
+    user = {'email': data['email'], 'firstName': data['firstname'], 'lastName': data['lastname'], 'status': 'pending'}
+    users.addUser(user)
+    user = users.queryUsers({'email': data['email']})[0]
+    confirmation_token = generate_confirmation_token(user['_id'])
+    mail.send_confirmation(user['email'], confirmation_token)
+
+    return bsonify(user)
+
+@bp.route('/confirm-email/<token>')
+def confirm_email(token):
+    id = confirm_token(token)
+    if id=="None":
+        return make_response("Token invalid, or has already expired.", 403)
+
+    user = users.queryUsers({'_id': id})[0]
+    if user['status'] == 'pending':
+        users.updateUsers({"_id": id}, {'status': 'confirmed'})
+        return bsonify(user)
+    else:
+        return make_response("User already verified", 403)
+
+@bp.route('/finalize-signup', methods=['POST'])
+def finalize_signup():
+    #request.form should contain the user ID
+    data = request.json
+    print(data)
+    #if len(users.queryUsers({'email': 'nwz05@mail.aub.edu'})) == 0:
+    #    return make_response("User not found. Please create an account.", 403)
+    #id = users.queryUsers({'email': 'nwz05@mail.aub.edu'})[0]["_id"]
+    # data = {'_id': id, 'major': 'Electrical and Computer Engineering', 'gender': 'Male', 'age': 20, 'avatar': 'stuff'}
 
 
+    if len(users.queryUsers({'_id': data['_id']}))==0:
+        return make_response("User not found. Please create an account.", 403)
+    user = users.queryUsers({'_id': data['_id']})[0]
+    if user['status'] == 'pending':
+        return make_response("Please confirm your account before proceeding.", 403)
+    elif user['status'] == 'complete':
+        return make_response('You have already completed your profile.', 403)
+    id = data['_id'] 
+    users.updateUsers({'_id': id}, data['data'])
+    users.updateUsers({'_id': id}, {'status':'complete'})
+    user = users.queryUsers({'_id': id})[0]
+    return bsonify(user) 
+  
 
 @bp.route("/logout")
 def logout():
