@@ -1,9 +1,10 @@
-from flask import Blueprint, current_app, request, jsonify
+from flask import Blueprint, current_app, request, jsonify, make_response
 from services import mongo
 from bson import json_util
 from utils import queryFromArgs, bsonify, bsonifyList, prepQuery
 import json
 from flask_jwt_extended import jwt_required, get_jwt_identity
+import urllib.parse as parseURI
 
 bp = Blueprint('users', __name__)
 
@@ -33,10 +34,21 @@ def getUserStatus(id):
 
 @bp.route('/get-users')
 def getUsers():
-    keys = ['firstName', 'lastName', 'email', 'room']
+    keys = ['firstName', 'lastName', 'email', 'room', 'major', 'group', 'enrollY', '_id']
     query = queryFromArgs(keys, request.args)
 
     return jsonify(queryUsers(query))
+
+@bp.route('/search-users')
+def searchUsers():
+    if 'search' not in request.args:
+        return make_response("Search query not found", 403)
+    searchString = parseURI.unquote(request.args['search'])
+    query = {"$text": { "$search": searchString }}
+    resp = []
+    for val in user_col.find(query):
+        resp.append(val)
+    return bsonifyList(resp)
 
 def queryUsers(query):
 
@@ -58,6 +70,9 @@ def changeUserRoom(id, room):
 
 def changeUserGroup(id, group):
     updateUsers({'_id': id}, {'group': group})
+
+def changeOnlineStatus(id, newStatus):
+    updateUsers({'_id':id}, {'onlineStatus': newStatus})
 
 def addUser(user):
     user_col.insert_one(user)

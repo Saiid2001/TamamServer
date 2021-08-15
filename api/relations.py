@@ -107,12 +107,13 @@ def getRelationshipsWithUser(otherId):
     return jsonify(_getRelwU(uid, otherId))
 
 
-def _getFriends(user):
+def _getFriends(user, query):
 
     links = getRelationsList({'user': user, 'type': 'friendship', 'status': 'established'})
 
     friends = []
 
+    checkRoom = 'room' in query
     for link in links:
         friendId = link['user1'] if link['user1'] != user else link['user2']
         friend = users.queryUsers({'_id': friendId})[0]
@@ -121,8 +122,9 @@ def _getFriends(user):
         for key in link:
             if key !='user1' and key != 'user2':
                 friend['relationship'][key] = link[key]
-        
-        friends.append(friend)
+
+        if checkRoom and friend['room'] == query['room'] or not checkRoom:
+            friends.append(friend)
 
     return friends
 
@@ -131,7 +133,7 @@ def _getFriends(user):
 def getFriends():
     uid = get_jwt_identity()
     
-    return jsonify(_getFriends(uid))
+    return jsonify(_getFriends(uid, request.args))
 
 @bp.route('/friendships/requests/sent')
 @jwt_required()
@@ -249,5 +251,5 @@ def socketevents(socketio):
 
         return make_response('Friend request accepted', 200)
 
-        
 
+#relations_col.delete_many({})

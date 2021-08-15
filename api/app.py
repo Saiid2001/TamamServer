@@ -80,7 +80,10 @@ def connect():
     #to authenticate the user before connecting the socket 
     try:
         token = verify_jwt_in_request()
-        join_room(get_jwt_identity())
+        userid = get_jwt_identity()
+        join_room(userid)
+        if len(users.queryUsers({'_id': userid})) > 0:
+            users.changeOnlineStatus(userid, 'online')
     except Exception as exp:
         print(exp)   
         raise ConnectionRefusedError('unauthorized!')
@@ -90,7 +93,9 @@ def connect():
 def disconnect():
     userid = get_jwt_identity()
     rooms.leave(userid, socketio)
-
+    if len(users.queryUsers({'_id': userid})) > 0:
+        print("bravo 6 going dark")
+        users.changeOnlineStatus(userid, 'offline')
       
 
 rooms.socketevents(socketio)
