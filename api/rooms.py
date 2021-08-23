@@ -6,7 +6,7 @@ from flask_socketio import join_room, leave_room
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from users import queryUsers, changeUserRoom, changeUserGroup
 import json
-
+import history
 
 bp = Blueprint('rooms', __name__)
 
@@ -296,6 +296,8 @@ def socketevents(socketio):
 
         socketio.emit('user-joined-room', {'user': user}, room = room, include_self=False)
         socketio.emit('user-joined-room-to-map', {'user': user, 'room': room}, room = "map", include_self=False)
+
+        history.logRoomVisit(userid, room)
 
         return users_in_room
 

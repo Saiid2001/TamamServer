@@ -114,12 +114,9 @@ def removeUser(userId):
     query = prepQuery({'_id': userId}, ['_id'])
     user_col.delete_many(query)
 
-
-  
-
  
 def initialize():
-    #user_col.delete_many({})
+    #user_col.delete_many({"firstName":"Moe"})
     #addUser()
     pass
  

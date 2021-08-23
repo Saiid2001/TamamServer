@@ -16,6 +16,7 @@ import msal
 import users
 import mail
 from itsdangerous import URLSafeTimedSerializer
+from datetime import datetime as dt
 
 bp = Blueprint('auth', __name__)
 
@@ -109,14 +110,22 @@ def request_signup():
     data = request.form
     #data = {'email': 'nwz05@mail.aub.edu', 'firstname': 'Nader', 'lastname': 'Zantout'}
     checkQuery = users.queryUsers({'email': data['email']})
+    today = dt.today()
     if len(checkQuery)>0:
         if checkQuery[0]['status']=='pending':
-            return make_response("Account awaiting verification", 403)
+            date_created= checkQuery[0]['date_created']
+            date_created = dt.fromisoformat(date_created)
+            time_passed = today-date_created
+            if time_passed.total_seconds<200:
+                return make_response("Account awaiting verification", 403)
+            else:
+                users.removeUser(checkQuery[0]['_id'])
         elif checkQuery[0]['status']=='confirmed':
             return make_response("User confirmed, please complete your profile", 403)
         else:
             return make_response("User already in database", 403)
-    user = {'email': data['email'], 'firstName': data['firstname'], 'lastName': data['lastname'], 'status': 'pending'}
+    
+    user = {'email': data['email'], 'firstName': data['firstname'], 'lastName': data['lastname'], 'status': 'pending', 'date_created':today.isoformat()}
     users.addUser(user)
     user = users.queryUsers({'email': data['email']})[0]
     confirmation_token = generate_confirmation_token(user['_id'])

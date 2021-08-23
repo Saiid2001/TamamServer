@@ -66,3 +66,6 @@ def prepQuery(query, ids):
             query[id] = ObjectId(query[id])
 
     return query
+
+def objectId(id_string):
+    return ObjectId(id_string)
