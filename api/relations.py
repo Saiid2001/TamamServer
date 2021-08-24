@@ -178,6 +178,7 @@ def getReceivedFriendRequests():
     return jsonify(friends)
 
 
+
 def socketevents(socketio):
 
     @bp.route('/friendships/request/<friendId>')
@@ -251,3 +252,12 @@ def socketevents(socketio):
 
         
 
+def logInteraction(user1, user2, duration):
+    pass
+    # {user1: ..., user2: ..., log: [{time1, groupId1}, {time1, groupId1} , ...]}
+
+@bp.route('/interactions')
+@jwt_required()
+def getInteractions():
+    userId = get_jwt_identity()
+    pass
