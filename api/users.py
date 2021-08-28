@@ -5,12 +5,15 @@ from utils import queryFromArgs, bsonify, bsonifyList, prepQuery
 import json
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import urllib.parse as parseURI
+from pymongo import ASCENDING, DESCENDING, TEXT
 
 bp = Blueprint('users', __name__)
 
 db = mongo.get_default_database()
 
 user_col = db['user_collection']
+
+user_col.create_index([('firstName', TEXT), ('lastName', TEXT), ('major', TEXT), ('enrollY', TEXT), ('gradY', TEXT), ('group', TEXT)])
 
 @bp.route('/get-user')
 @jwt_required()
@@ -40,15 +43,29 @@ def getUsers():
     return jsonify(queryUsers(query))
 
 @bp.route('/search-users')
+@jwt_required()
 def searchUsers():
-    if 'search' not in request.args:
+
+    uid = get_jwt_identity()
+
+    if 'search' not in request.args and 'advanced-search' not in request.args:
         return make_response("Search query not found", 403)
-    searchString = parseURI.unquote(request.args['search'])
-    query = {"$text": { "$search": searchString }}
+    query = {}
     resp = []
+    argKeys = ['firstName', 'lastName', 'major', 'enrollY', 'gradY']
+    if 'search' in request.args:
+        searchString = parseURI.unquote(request.args['search']).replace(' ', '|')
+        queryList = []
+        for key in argKeys:
+            queryList.append( { key : { "$regex" : searchString, "$options" : "i"} } )
+        query = {"$and": [{'_id': {'$ne': uid}}, {'onlineStatus': 'online'}, {"$or": queryList}]}
+        #query = {"$text": { "$search": searchString }}
+    else:
+        pass
+
     for val in user_col.find(query):
         resp.append(val)
-    return bsonifyList(resp)
+    return jsonify(bsonifyList(resp))
 
 def queryUsers(query):
 
