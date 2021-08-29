@@ -1,6 +1,7 @@
 from flask import Blueprint, current_app, request, jsonify, make_response
 from services import mongo
 from bson import json_util
+from bson.objectid import ObjectId
 from utils import queryFromArgs, bsonify, bsonifyList, prepQuery
 import json
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -47,7 +48,7 @@ def getUsers():
 def searchUsers():
 
     uid = get_jwt_identity()
-
+    print("uid:", type(uid))
     if 'search' not in request.args and 'advanced-search' not in request.args:
         return make_response("Search query not found", 403)
     query = {}
@@ -58,13 +59,12 @@ def searchUsers():
         queryList = []
         for key in argKeys:
             queryList.append( { key : { "$regex" : searchString, "$options" : "i"} } )
-        query = {"$and": [{'_id': {'$ne': uid}}, {'onlineStatus': 'online'}, {"$or": queryList}]}
+        query = {"$and": [{'_id': {'$ne': ObjectId(uid)}}, {'onlineStatus': 'online'}, {"$or": queryList}]}
         #query = {"$text": { "$search": searchString }}
     else:
         pass
 
-    for val in user_col.find(query):
-        resp.append(val)
+    resp = queryUsers(query)
     return jsonify(bsonifyList(resp))
 
 def queryUsers(query):
