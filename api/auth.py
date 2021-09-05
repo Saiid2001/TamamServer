@@ -121,8 +121,7 @@ def request_signup():
             return make_response("User confirmed, please complete your profile", 403)
         else:
             return make_response("User already in database", 403)
-    
-    user = {'email': data['email'], 'firstName': data['firstname'], 'lastName': data['lastname'], 'status': 'pending', 'date_created':today.isoformat()}
+    user = {'email': data['email'], 'firstName': data['firstname'], 'lastName': data['lastname'], 'status': 'pending', 'onlineStatus': 'offline', 'date_created':today.isoformat()}
     users.addUser(user)
     user = users.queryUsers({'email': data['email']})[0]
     confirmation_token = generate_confirmation_token(user['_id'])

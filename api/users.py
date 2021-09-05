@@ -1,15 +1,20 @@
-from flask import Blueprint, current_app, request, jsonify
+from flask import Blueprint, current_app, request, jsonify, make_response
 from services import mongo
 from bson import json_util
+from bson.objectid import ObjectId
 from utils import queryFromArgs, bsonify, bsonifyList, prepQuery
 import json
 from flask_jwt_extended import jwt_required, get_jwt_identity
+import urllib.parse as parseURI
+from pymongo import ASCENDING, DESCENDING, TEXT
 
 bp = Blueprint('users', __name__)
 
 db = mongo.get_default_database()
 
 user_col = db['user_collection']
+
+user_col.create_index([('firstName', TEXT), ('lastName', TEXT), ('major', TEXT), ('enrollY', TEXT), ('gradY', TEXT), ('group', TEXT)])
 
 @bp.route('/get-user')
 @jwt_required()
@@ -33,10 +38,34 @@ def getUserStatus(id):
 
 @bp.route('/get-users')
 def getUsers():
-    keys = ['firstName', 'lastName', 'email', 'room']
+    keys = ['firstName', 'lastName', 'email', 'room', 'major', 'group', 'enrollY', '_id']
     query = queryFromArgs(keys, request.args)
 
     return jsonify(queryUsers(query))
+
+@bp.route('/search-users')
+@jwt_required()
+def searchUsers():
+
+    uid = get_jwt_identity()
+    print("uid:", type(uid))
+    if 'search' not in request.args and 'advanced-search' not in request.args:
+        return make_response("Search query not found", 403)
+    query = {}
+    resp = []
+    argKeys = ['firstName', 'lastName', 'major', 'enrollY', 'gradY']
+    if 'search' in request.args:
+        searchString = parseURI.unquote(request.args['search']).replace(' ', '|')
+        queryList = []
+        for key in argKeys:
+            queryList.append( { key : { "$regex" : searchString, "$options" : "i"} } )
+        query = {"$and": [{'_id': {'$ne': ObjectId(uid)}}, {'onlineStatus': 'online'}, {"$or": queryList}]}
+        #query = {"$text": { "$search": searchString }}
+    else:
+        pass
+
+    resp = queryUsers(query)
+    return jsonify(bsonifyList(resp))
 
 def queryUsers(query):
 
@@ -57,6 +86,9 @@ def changeUserRoom(id, room):
 
 def changeUserGroup(id, group):
     updateUsers({'_id': id}, {'group': group})
+
+def changeOnlineStatus(id, newStatus):
+    updateUsers({'_id':id}, {'onlineStatus': newStatus})
 
 def addUser(user):
     user_col.insert_one(user)
