@@ -7,6 +7,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from users import queryUsers, changeUserRoom, changeUserGroup
 import json
 import history
+from relations import logInteractionStart, logInteractionEnd
 
 bp = Blueprint('rooms', __name__)
 
@@ -306,8 +307,18 @@ def socketevents(socketio):
     def on_join_group(data):
         userid = get_jwt_identity()
         user = queryUsers({'_id':userid})[0]
+
+        logInteractionEnd(str(user['_id']))
+
         join_room(data['group'])
-        changeUserGroup(userid, data['group'])
+        changeUserGroup(userid, data['group']) 
+ 
+        #logging interactions starting
+        users_in_room = queryUsers({'group': data['group']}) 
+        for user_in_room in users_in_room:
+            if str(user_in_room['_id']) != userid and data['group'] !="NONE":
+                logInteractionStart(userid,str(user_in_room['_id']), data['group'], user['room'])
+
         socketio.emit('user-joined-group', {'user': userid, 'group': data['group']}, room = user['room'], include_self=False) 
 
     @socketio.on('leave-group')
@@ -320,7 +331,11 @@ def socketevents(socketio):
         leave_room(group)
         rtc.onLeave(user,room+"-"+group)
         leave_room(room+"-"+group)
-        changeUserGroup(userid, "NONE")
+        changeUserGroup(userid, "NONE") 
+
+        #logging interactions ending
+        logInteractionEnd(userid)
+        
         socketio.emit('user-left-group', {'user': userid, 'group': group}, room = user['room'], include_self=False) 
            
     @socketio.on('leave')
@@ -340,4 +355,5 @@ def socketevents(socketio):
         changeUserRoom(userid, room)
 
         join_room(room)
-        socketio.emit('user-joined-room', {'user': user}, room=room, include_self=False)
+        socketio.emit('user-joined-room', {'user': user}, room=room, include_self=False)  
+ 

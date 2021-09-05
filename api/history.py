@@ -8,9 +8,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 import users
 from datetime import datetime as dt
 
-MAX_NUM_ROOM_LOGGED = 10
-MAX_NUM_INTERACTIONS_LOGGED = 20
-MAX_NUM_INTERACTIONS_DATES_LOGGED = 10
+MAX_NUM_ROOM_LOGGED = 50
+
 
 bp = Blueprint('history', __name__)
 
@@ -39,7 +38,7 @@ def logRoomVisit(userId,roomId):
                 room_visits_list = prev_user_visit['rooms'].items()
                 sorted_by_count = sorted(room_visits_list, key= lambda x: x[1]['count'])
                 rarest_room_visits = [x for x in sorted_by_count if x[1]['count'] == sorted_by_count[0][1]['count']]
-                date_to_remove = min(rarest_room_visits, key= lambda x: x[1]['entered'])
+                date_to_remove = min(rarest_room_visits, key= lambda x: dt.fromisoformat(x[1]['entered']))
                 del prev_user_visit['rooms'][date_to_remove[0]]
         else:
             count = prev_user_visit['rooms'][roomId]['count']

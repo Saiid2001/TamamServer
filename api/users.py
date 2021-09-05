@@ -42,7 +42,6 @@ def queryUsers(query):
 
     query = prepQuery(query, ids = ['_id'])
     resp = []
-    print(query) 
     for val in user_col.find(query):
         resp.append(val)
     return bsonifyList(resp)
@@ -116,7 +115,7 @@ def removeUser(userId):
 
  
 def initialize():
-    #user_col.delete_many({"firstName":"Moe"})
+    #user_col.delete_many({})
     #addUser()
     pass
  

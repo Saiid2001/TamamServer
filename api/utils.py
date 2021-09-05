@@ -68,4 +68,5 @@ def prepQuery(query, ids):
     return query
 
 def objectId(id_string):
+    if isinstance(id_string,ObjectId): return id_string
     return ObjectId(id_string)

@@ -26,7 +26,6 @@ def check_user(ms_user_token):
         usr = resp[0]
 
         if usr['status'] != 'complete':
-            print(usr)
             users.removeUser(usr['_id'])
             return redirect('http://localhost/callback?request_signup=1&email='+ms_user_token['preferred_username'])
 
@@ -95,8 +94,6 @@ def login():
     # here we choose to also collect end user consent upfront
     
     session["flow"] = _build_auth_code_flow(scopes=app_config.SCOPE)
-    print(app_config.CLIENT_ID)
-    print(session['flow']['auth_uri']) 
 
     return redirect(session["flow"]["auth_uri"])
 
@@ -142,15 +139,18 @@ def confirm_email(token):
     user = users.queryUsers({'_id': id})[0]
     if user['status'] == 'pending':
         users.updateUsers({"_id": id}, {'status': 'confirmed'})
-        return bsonify(user)
+        return render_template('email-verification.html')
     else:
         return make_response("User already verified", 403)
+
+@bp.route('/test')
+def test():
+    return render_template('email-verification.html')
 
 @bp.route('/finalize-signup', methods=['POST'])
 def finalize_signup():
     #request.form should contain the user ID
     data = request.json
-    print(data)
     #if len(users.queryUsers({'email': 'nwz05@mail.aub.edu'})) == 0:
     #    return make_response("User not found. Please create an account.", 403)
     #id = users.queryUsers({'email': 'nwz05@mail.aub.edu'})[0]["_id"]
