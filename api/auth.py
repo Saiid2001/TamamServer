@@ -16,6 +16,7 @@ import msal
 import users
 import mail
 from itsdangerous import URLSafeTimedSerializer
+from datetime import datetime as dt
 
 bp = Blueprint('auth', __name__)
 
@@ -25,7 +26,6 @@ def check_user(ms_user_token):
         usr = resp[0]
 
         if usr['status'] != 'complete':
-            print(usr)
             users.removeUser(usr['_id'])
             return redirect('http://localhost/callback?request_signup=1&email='+ms_user_token['preferred_username'])
 
@@ -94,8 +94,6 @@ def login():
     # here we choose to also collect end user consent upfront
     
     session["flow"] = _build_auth_code_flow(scopes=app_config.SCOPE)
-    print(app_config.CLIENT_ID)
-    print(session['flow']['auth_uri']) 
 
     return redirect(session["flow"]["auth_uri"])
 
@@ -109,14 +107,22 @@ def request_signup():
     data = request.form
     #data = {'email': 'nwz05@mail.aub.edu', 'firstname': 'Nader', 'lastname': 'Zantout'}
     checkQuery = users.queryUsers({'email': data['email']})
+    today = dt.today()
     if len(checkQuery)>0:
         if checkQuery[0]['status']=='pending':
-            return make_response("Account awaiting verification", 403)
+            date_created= checkQuery[0]['date_created']
+            date_created = dt.fromisoformat(date_created)
+            time_passed = today-date_created
+            if time_passed.total_seconds<200:
+                return make_response("Account awaiting verification", 403)
+            else:
+                users.removeUser(checkQuery[0]['_id'])
         elif checkQuery[0]['status']=='confirmed':
             return make_response("User confirmed, please complete your profile", 403)
         else:
             return make_response("User already in database", 403)
-    user = {'email': data['email'], 'firstName': data['firstname'], 'lastName': data['lastname'], 'status': 'pending'}
+    
+    user = {'email': data['email'], 'firstName': data['firstname'], 'lastName': data['lastname'], 'status': 'pending', 'date_created':today.isoformat()}
     users.addUser(user)
     user = users.queryUsers({'email': data['email']})[0]
     confirmation_token = generate_confirmation_token(user['_id'])
@@ -133,15 +139,18 @@ def confirm_email(token):
     user = users.queryUsers({'_id': id})[0]
     if user['status'] == 'pending':
         users.updateUsers({"_id": id}, {'status': 'confirmed'})
-        return bsonify(user)
+        return render_template('email-verification.html')
     else:
         return make_response("User already verified", 403)
+
+@bp.route('/test')
+def test():
+    return render_template('email-verification.html')
 
 @bp.route('/finalize-signup', methods=['POST'])
 def finalize_signup():
     #request.form should contain the user ID
     data = request.json
-    print(data)
     #if len(users.queryUsers({'email': 'nwz05@mail.aub.edu'})) == 0:
     #    return make_response("User not found. Please create an account.", 403)
     #id = users.queryUsers({'email': 'nwz05@mail.aub.edu'})[0]["_id"]
