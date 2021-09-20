@@ -170,5 +170,5 @@ def getUserCourses():
 
 
 #query classes from AUB on restart of server
-#initCoursesDB() 
+#initCoursesDB()
    

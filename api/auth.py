@@ -100,7 +100,7 @@ def login():
 @bp.route('/login-dev')
 def login_dev():
 
-    return '<form action="/getAToken-dev" method="get"><input type="text" placeholder="email" name="email"/><input type = "submit"/></form>'
+    return '<form action="/getAToken-dev" method="get" style="text-align:center;position:relative;top:50px"><input type="text" placeholder="email" name="email"/><input type = "submit"/></form>'
 
 @bp.route('/request-signup', methods=['POST'])
 def request_signup():
@@ -121,7 +121,18 @@ def request_signup():
             return make_response("User confirmed, please complete your profile", 403)
         else:
             return make_response("User already in database", 403)
-    user = {'email': data['email'], 'firstName': data['firstname'], 'lastName': data['lastname'], 'status': 'pending', 'onlineStatus': 'offline', 'date_created':today.isoformat()}
+    user = {'email': data['email'],
+            'firstName': data['firstname'],
+            'lastName': data['lastname'],
+            'status': 'pending',
+            'onlineStatus': 'offline',
+            'date_created': today.isoformat(),
+            'privacy': {
+                'allow_map': True,
+                'collect_interaction_info': True,
+                'allow_search': True,
+                'show_online_status': True
+            }}
     users.addUser(user)
     user = users.queryUsers({'email': data['email']})[0]
     confirmation_token = generate_confirmation_token(user['_id'])

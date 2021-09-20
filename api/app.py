@@ -45,6 +45,7 @@ import rooms
 import relations
 import history
 import courses
+import settings
 from utils import _load_cache, _build_msal_app, _save_cache
 app.register_blueprint(auth.bp, url_prefix='/authenticate')
 app.register_blueprint(sockets.bp, url_prefix='/')
@@ -53,6 +54,8 @@ app.register_blueprint(rooms.bp, url_prefix='/rooms')
 app.register_blueprint(relations.bp, url_prefix='/relations')
 app.register_blueprint(history.bp, url_prefix = '/history')
 app.register_blueprint(courses.bp, url_prefix = '/courses')
+app.register_blueprint(settings.bp, url_prefix = '/settings')
+
 
 @app.route('/')  
 def home():

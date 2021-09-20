@@ -52,26 +52,33 @@ def searchUsers():
     if 'search' not in request.args and 'advanced-search' not in request.args:
         return make_response("Search query not found", 403)
     query = {}
-    resp = []
+    projection = {}
     argKeys = ['firstName', 'lastName', 'major', 'enrollY', 'gradY']
     if 'search' in request.args:
         searchString = parseURI.unquote(request.args['search']).replace(' ', '|')
         queryList = []
         for key in argKeys:
             queryList.append( { key : { "$regex" : searchString, "$options" : "i"} } )
-        query = {"$and": [{'_id': {'$ne': ObjectId(uid)}}, {'onlineStatus': 'online'}, {"$or": queryList}]}
+        query = {"$and": [{'_id': {'$ne': ObjectId(uid)}},
+                          {'onlineStatus': 'online'},
+                          {'privacy': {'allow_search': True}},
+                          {"$or": queryList}]}
+        projection = {
+            'status': 0,
+            'settings': 0
+        }
         #query = {"$text": { "$search": searchString }}
     else:
         pass
 
-    resp = queryUsers(query)
+    resp = queryUsers(query, projection)
     return jsonify(bsonifyList(resp))
 
-def queryUsers(query):
+def queryUsers(query, projection = None):
 
     query = prepQuery(query, ids = ['_id'])
     resp = []
-    for val in user_col.find(query):
+    for val in user_col.find(query, projection):
         resp.append(val)
     return bsonifyList(resp)
 

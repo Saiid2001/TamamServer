@@ -298,7 +298,8 @@ def socketevents(socketio):
         socketio.emit('user-joined-room', {'user': user}, room = room, include_self=False)
         socketio.emit('user-joined-room-to-map', {'user': user, 'room': room}, room = "map", include_self=False)
 
-        history.logRoomVisit(userid, room)
+        if user['privacy']['collect_interaction_info']:
+            history.logRoomVisit(userid, room)
 
         return users_in_room
 

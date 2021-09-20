@@ -118,17 +118,26 @@ def _getFriends(user, query):
     links = getRelationsList({'user': user, 'type': 'friendship', 'status': 'established'})
 
     friends = []
-
+    projection = {
+        'status': 0,
+    }
     checkRoom = 'room' in query
     for link in links:
         friendId = link['user1'] if link['user1'] != user else link['user2']
-        friend = users.queryUsers({'_id': friendId})[0]
+        friend = users.queryUsers({'_id': friendId}, projection)[0]
 
         friend['relationship'] = {}
         for key in link:
             if key !='user1' and key != 'user2':
                 friend['relationship'][key] = link[key]
 
+        if not friend['privacy']['allow_map']:
+            friends['privacy']['room'] = "Hidden"
+        if not friend['privacy']['show_online_status']:
+            friends['privacy']['onlineStatus'] = "Hidden"
+
+        del friends['privacy']
+        
         if checkRoom and friend['room'] == query['room'] or not checkRoom:
             friends.append(friend)
 
