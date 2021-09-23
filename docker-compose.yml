@@ -5,7 +5,7 @@ services:
  database:
   image: mongo:4.0.8
   volumes:
-   - ./mongo:/data/db
+   - /tamam-mongo:/data/db
   container_name: tamam-db
   restart: unless-stopped
   command: mongod --auth
@@ -36,7 +36,7 @@ services:
   ports:
    - "4000:5000"
   volumes:
-   - ./api:/api
+   - /tamam-api:/api
   restart: always
   environment:
       APP_ENV: "prod"
