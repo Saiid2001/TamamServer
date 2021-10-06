@@ -7,7 +7,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from users import queryUsers, changeUserRoom, changeUserGroup
 import json
 import history
-from relations import logInteractionStart, logInteractionEnd
+
 
 bp = Blueprint('rooms', __name__)
 
@@ -28,8 +28,6 @@ def getRooms():
     rooms = queryRooms(query)
     
     for i,room in enumerate(rooms):
-       
-        room['users']= getRoomUsers(room['_id'])
 
         if 'open' in request.args:
             if len(room['users'])==room['maxCapacity']:
@@ -43,7 +41,9 @@ def queryRooms(query):
     query = prepQuery(query, ids = ['_id'])
     resp = []
     for val in rooms_col.find(query):
+        val['users'] = getRoomUsers(val['_id']) 
         resp.append(val)
+
     return bsonifyList(resp)
 
 def updateRooms(query, values_to_update):
@@ -256,6 +256,8 @@ def initialize():
 
 initialize()
 
+from relations import logInteractionStart, logInteractionEnd
+
 
 def leave(userid, socketio):
 
@@ -273,6 +275,8 @@ def leave(userid, socketio):
         socketio.emit('user-left-room-to-map', {'user': user, 'room': room}, room = "map", include_self = False)
 
 
+    
+
 import webRTCTurn as rtc
 
 def socketevents(socketio):
@@ -282,6 +286,8 @@ def socketevents(socketio):
     def on_join(data):
         userid = get_jwt_identity()
         user = queryUsers({'_id':userid})[0]
+        if user['room'] != "NONE":
+            leave_room(user['room'])
         room = data['room']
 
         users_in_room = queryUsers({'room': room})

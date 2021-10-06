@@ -3,6 +3,8 @@ from gevent import monkey
 monkey.patch_all()
 
 import uuid
+import logging
+import config
 import requests
 import os
 import datetime 
@@ -15,10 +17,18 @@ from flask_jwt_extended import JWTManager, verify_jwt_in_request,jwt_required, g
 from flask_socketio import SocketIO, send, join_room, leave_room,ConnectionRefusedError
 from werkzeug.middleware.proxy_fix import ProxyFix
 from pymongo import MongoClient
-from services import mongo
+from services import mongo 
 from flask_mail import Mail,Message
 
 app = Flask(__name__)
+
+#logging 
+logging.basicConfig(level=logging.DEBUG, 
+                    format='[%(asctime)s]: {} %(levelname)s %(message)s'.format(os.getpid()),
+                    datefmt="%Y-%m-%d %H:%M:%S",
+                    handlers=[logging.StreamHandler()])
+
+logger = logging.getLogger()
 
 #config
 app.config.from_object(app_config)
@@ -33,9 +43,6 @@ Session(app)
 jwt = JWTManager(app)
 socketio = SocketIO(app)
 mongo.__init__(app.config['MONGO_URI'])
-
-#scripts 
-     
  
 #blueprints 
 import auth
@@ -118,20 +125,11 @@ import webRTCTurn
 
 webRTCTurn.socketEvents(socketio)
 
- 
-
-#kms
-
-
-
-
+def run_app(_app):
+    socketio.run(_app, host='0.0.0.0', port=5000, debug=True)
 if __name__=="__main__":    
-    #import pyforkurento
-    #kclient = pyforkurento.client.KurentoClient('ws://tamam-mcu:8888/kurento')
-
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
-
-    #, keyfile = './security/keyp.pem', certfile = './security/cert.pem'
+    logger.info(f'Starting app in {config.APP_ENV} environment')
+    run_app(app)
 
     
        

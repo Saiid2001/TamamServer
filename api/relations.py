@@ -1,5 +1,6 @@
 from flask import Blueprint, current_app, request, jsonify
 from flask.helpers import make_response
+from history import MAX_NUM_ROOM_RECOMMENDED
 from services import mongo
 from bson import json_util
 from utils import queryFromArgs, bsonify, bsonifyList, prepQuery,objectId
@@ -7,6 +8,7 @@ import json
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import users
 from datetime import datetime as dt
+import random
 
 bp = Blueprint('relations', __name__)
 
@@ -120,6 +122,7 @@ def _getFriends(user, query):
     friends = []
 
     checkRoom = 'room' in query
+    checkOnline = 'onlineStatus' in query
     for link in links:
         friendId = link['user1'] if link['user1'] != user else link['user2']
         friend = users.queryUsers({'_id': friendId})[0]
@@ -129,15 +132,16 @@ def _getFriends(user, query):
             if key !='user1' and key != 'user2':
                 friend['relationship'][key] = link[key]
 
-        if checkRoom and friend['room'] == query['room'] or not checkRoom:
-            friends.append(friend)
+        if not checkRoom or friend['room'] == query['room']:
+            if not checkOnline or friend['onlineStatus']=='online':
+                friends.append(friend)
 
     return friends
 
 def _getMutuals(user1, user2):
 
-    f1 = _getFriends(user1)
-    f2 = _getFriends(user2)
+    f1 = _getFriends(user1,{})
+    f2 = _getFriends(user2,{})
 
     m1 = { f['_id']: f for f in f1}
     m2 = { f['_id']: f for f in f2}
@@ -152,10 +156,6 @@ def _getMutuals(user1, user2):
         mutuals.append(m1[fid])
     
     return mutuals
-
-
-
-
 
 @bp.route('/friendships')
 @jwt_required()
@@ -218,7 +218,22 @@ def getReceivedFriendRequests():
 
     return jsonify(friends)
 
+@bp.route('/friendships/recommended')
+@jwt_required()
+def recommendFriends():
+    user = get_jwt_identity()
+    candidates = users.queryUsers({'status':'complete'})
+    candidates = [c for c in candidates if str(c['_id']) != user]
+    chosen = random.sample(candidates, k= min(len(candidates), 9))
 
+    output = []
+
+    for f in chosen:
+        output.append(
+            {'user':bsonify(f),'from':'recommended'}
+        )
+
+    return jsonify(output)
 
 def socketevents(socketio):
 
@@ -291,6 +306,7 @@ def socketevents(socketio):
         return make_response('Friend request accepted', 200)
 
 
+
 def _logInteraction(user1, user2,group,room, duration):
 
     relations = _getRelwU(user1,user2, 'interaction')
@@ -313,7 +329,6 @@ def _logInteraction(user1, user2,group,room, duration):
             prev_interaction['log'].append(interaction_entry)
 
         return relations_col.update_one({'_id':objectId(prev_interaction['_id'])}, { '$set': {'log': prev_interaction['log'], 'isOngoing': duration==-1} })
-
 
 def _removeLastInteraction(user1, user2):
 
@@ -347,11 +362,8 @@ def logInteractionEnd(user):
             else:
                 _removeLastInteraction(user,user2)
  
-@bp.route('/interactions')
-#@jwt_required()
-def getAllInteractions():  
-    #user = get_jwt_identity()
-    user = '6123dc348c515f345f4b88d6'
+def _getAllInteractions(user):
+
     links = getRelationsList({'user': user, 'type': 'interaction'}) 
 
     interactions = {}
@@ -360,8 +372,14 @@ def getAllInteractions():
         otherId = link['user1'] if link['user1'] != user else link['user2']
         
         interactions[str(otherId)] = bsonifyList(link['log'],['group'])
+    
+    return interactions
 
-    return jsonify(interactions)
+@bp.route('/interactions')
+@jwt_required()
+def getAllInteractions():  
+    user = get_jwt_identity()
+    return jsonify(_getAllInteractions(user))
 
 def _getInteractions(user1, user2):
     prev_interactions = _getRelwU(user1,user2, 'interaction')
@@ -370,7 +388,8 @@ def _getInteractions(user1, user2):
     prev_interactions = prev_interactions['interaction']
 
     if len(prev_interactions): 
-        output = prev_interactions[0]['log']
+        
+        output = prev_interactions['log']
         return output
     else:
         return []
@@ -382,8 +401,9 @@ def getInteractions(other_user):
     userId = get_jwt_identity()
     return jsonify(_getInteractions(userId,other_user))
 
+from rooms import queryRooms
 @bp.route('/interactions/last/<other_user>')
-@jwt_required()
+@jwt_required() 
 def getLastInteraction(other_user):
     userId = get_jwt_identity()
     interactions = _getInteractions(userId, other_user)
@@ -395,9 +415,197 @@ def getLastInteraction(other_user):
     response = {}
     response['date'] = interDate
     response['duration'] = interDuration
-    #response['room'] = bsonify(queryRooms({'_id': interRoom})[0])
+    response['secondsSinceToday'] = (dt.now()-dt.fromisoformat(interDate)).seconds
+    response['room'] = bsonifyList(queryRooms({'_id': interRoom}))[0]
 
-    return jsonify(response)
+    return jsonify(response) 
+
+@bp.route('/interactions/recommendation')
+@jwt_required()
+def getInteractionsRecommendations():
+
+    user = get_jwt_identity()
+
+    interactions = _getAllInteractions(user)
+
+    def key_recent(interaction_tupple):
+        user, interaction = interaction_tupple
+        return dt.fromisoformat(interaction[-1]['start'])
+    
+    def key_frequent(interaction_tupple):
+        user, interaction = interaction_tupple
+        return len(interaction)
+
+    sorted_interactions = sorted(interactions.items(), key= lambda x: (key_frequent(x), key_recent(x)))
+
+    max_num_recommendations = 5
+
+    recommended_users = []
+
+    for i in range(min(len(sorted_interactions), max_num_recommendations)):
+
+        recommended_users.append(users.queryUsers({'_id': sorted_interactions[i][0]})[0])
+
+
+    return jsonify(recommended_users)
+
+
+@bp.route('/groups/recommended')
+@jwt_required()
+def recommendGroups():
+
+    user = get_jwt_identity()
+
+    user_data = users.queryUsers({'_id': user})[0]
+    #simplistic grouping based on courses
+    # seeking friends groups
+    friends = _getFriends(user,{'onlineStatus': 'online'})
+    friends_in_rooms = {}
+
+    for friend in friends:
+
+        friends_in_rooms[friend['room']] = friends_in_rooms.get(friend['room'], [])
+        friends_in_rooms[friend['room']].append(bsonify(friend))
+
+    friends_in_rooms = sorted(friends_in_rooms.items(), key = lambda x: len(x[1]), reverse=True)
+
+    friend_group_recommendation = [{'type': 'friends', 'name':'Friends Group' , 'room': f[0], 'users': f[1]} for f in friends_in_rooms]
+
+    
+    #course based grouping
+    from courses import _getCourseSections, _getCourseByCRN
+    sections = user_data['classes']
+
+    sections_data = {x:_getCourseByCRN(x) for x in sections}
+
+
+
+    section_peers_in_rooms = {}
+
+    def getMaxInSection(section):
+
+            section_peer_recommendations =  {}
+            peers = users.queryUsers({"classes":{"$in": [section]}, 'onlineStatus':'online'})
+            if user_data in peers:
+                peers.remove(user_data)
+
+            for peer in peers:
+                section_peer_recommendations[peer['room']] = section_peer_recommendations.get(peer['room'], [])
+                section_peer_recommendations[peer['room']].append(bsonify(peer))
+
+            return section_peer_recommendations
+            
+            
+
+    for section in sections:
+
+        section_peers_in_rooms[section] = getMaxInSection(section)
+
+        if len(section_peers_in_rooms[section]):
+            section_peers_in_rooms[section] = max(section_peers_in_rooms[section].items(), key= lambda x: len(x[1]))
+            section_peers_in_rooms[section] = {
+                    'type':'section', 
+                    'name': sections_data[section]['SUBJECT']+sections_data[section]['CODE']+"-"+sections_data[section]['CRN'], 
+                    'room': section_peers_in_rooms[section][0], 
+                    'users':section_peers_in_rooms[section][1] 
+                }
+        else:
+            section_peers_in_rooms[section] = {}
+
+    #section_group_recommendation = max(list(section_peers_in_rooms.values()), key= lambda x: len(x['users']) if 'users' in x else -100)
+
+    section_group_recommendation = list(section_peers_in_rooms.values())
+
+
+    # subject based recommendation
+
+    courses = {x['SUBJECT']+x['CODE']: _getCourseSections(x["SUBJECT"], x['CODE']) for i, x in sections_data.items()}
+
+    course_group_recommendation = []
+
+    for subject in courses:
+
+        max_in_course = {}
+
+        for section in courses[subject]:
+
+            max_in_section = getMaxInSection(section)
+
+            # group under course and by room
+
+            for room in max_in_section:
+
+                max_in_course[room] = max_in_course.get(room, [])
+                max_in_course[room].extend(max_in_section[room])
+
+        if len(max_in_course):
+            max_in_course = max(max_in_course.items(), key= lambda x: len(x[1]))
+
+            course_group_recommendation.append(
+                {
+                    'type': 'course',
+                    'name': subject,
+                    'room': max_in_course[0],
+                    'users': max_in_course[1]
+                }
+            )
+
+
+        recommendations = []
+        
+        if len(friend_group_recommendation) and 'room' in friend_group_recommendation[0]:
+            recommendations += friend_group_recommendation
+        if len(course_group_recommendation) and 'room' in course_group_recommendation[0]:
+            recommendations += course_group_recommendation
+        if len(section_group_recommendation) and 'room' in section_group_recommendation[0]:
+            recommendations += section_group_recommendation
+
+        # make sure recommendation is not empty 
+        # fill in at least some rooms
+
+        if(len(recommendations)<MAX_NUM_ROOM_RECOMMENDED):
+            rooms_to_add = MAX_NUM_ROOM_RECOMMENDED - len(recommendations)
+            candidate_rooms = queryRooms({})
+
+
+
+            candidate_rooms = sorted(candidate_rooms, key = lambda x: len(x['users']), reverse=True)
+
+            candidate_rooms = [c for c in candidate_rooms if c['name']!='Main Gate']
+            
+            for i in range(len(candidate_rooms)):
+
+                candidate_rooms += [candidate_rooms[i]]*(len(candidate_rooms)//(i+1)-1)
+
+            import random
+
+            candidate_room1 = candidate_rooms[random.randint(0, len(candidate_rooms)-1)]
+
+            candidate_rooms = [c for c in candidate_rooms if c['_id']!=candidate_room1['_id']]
+
+            candidate_room2 = candidate_rooms[random.randint(0, len(candidate_rooms)-1)]
+
+            candidate_rooms = [c for c in candidate_rooms if c['_id']!=candidate_room2['_id']]
+
+            candidate_room3 = candidate_rooms[random.randint(0, len(candidate_rooms)-1)]
+
+            candidate_rooms = [c for c in candidate_rooms if c['_id']!=candidate_room3['_id']]
+
+            candidate_rooms = [candidate_room1, candidate_room2, candidate_room3]
+
+            for i in range(rooms_to_add):
+                recommendations.append({
+                    'type':'filler', 
+                    'name': 'Meet new people',
+                    'room': str(candidate_rooms[i]['_id']),
+                    'users': candidate_rooms[i]['users']
+                })
+        
+        recommendations = sorted(recommendations, key= lambda x: len(x['users']) if 'users' in x else -100, reverse=True)
+
+
+    return jsonify(recommendations[:MAX_NUM_ROOM_RECOMMENDED])
+    
 
 
 #testing
