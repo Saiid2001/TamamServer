@@ -494,8 +494,6 @@ def recommendGroups():
                 section_peer_recommendations[peer['room']].append(bsonify(peer))
 
             return section_peer_recommendations
-            
-            
 
     for section in sections:
 
@@ -551,57 +549,73 @@ def recommendGroups():
             )
 
 
-        recommendations = []
+    recommendations = []
+    
+    if len(friend_group_recommendation) and 'room' in friend_group_recommendation[0]:
+        recommendations += friend_group_recommendation
+    if len(course_group_recommendation) and 'room' in course_group_recommendation[0]:
+        recommendations += course_group_recommendation
+    if len(section_group_recommendation) and 'room' in section_group_recommendation[0]:
+        recommendations += section_group_recommendation
+
+    # make sure recommendation is not empty 
+    # fill in at least some rooms
+
+    #filter recommendations by room
+    recommendations_by_room = {}
+
+    for r in recommendations:
+        if 'room' in r:
+            recommendations_by_room[r['room']]= recommendations_by_room.get(r['room'], r)
+            if len(r['users'])>len(recommendations_by_room[r['room']]['users']):
+                recommendations_by_room[r['room']] = r
+
+    recommendations = [y for x,y in recommendations_by_room.items()]
+
+    rooms_not_to_look_for = list(recommendations_by_room.keys())
+
+    if(len(recommendations)<MAX_NUM_ROOM_RECOMMENDED):
+        rooms_to_add = MAX_NUM_ROOM_RECOMMENDED - len(recommendations)
+        candidate_rooms = queryRooms({})
+
+        candidate_rooms = sorted(candidate_rooms, key = lambda x: len(x['users']), reverse=True)
+
+        candidate_rooms = [c for c in candidate_rooms if c['name']!='Main Gate' and str(c['_id']) not in rooms_not_to_look_for ]
         
-        if len(friend_group_recommendation) and 'room' in friend_group_recommendation[0]:
-            recommendations += friend_group_recommendation
-        if len(course_group_recommendation) and 'room' in course_group_recommendation[0]:
-            recommendations += course_group_recommendation
-        if len(section_group_recommendation) and 'room' in section_group_recommendation[0]:
-            recommendations += section_group_recommendation
+        for i in range(len(candidate_rooms)):
 
-        # make sure recommendation is not empty 
-        # fill in at least some rooms
+            candidate_rooms += [candidate_rooms[i]]*(len(candidate_rooms)//(i+1)-1)
 
-        if(len(recommendations)<MAX_NUM_ROOM_RECOMMENDED):
-            rooms_to_add = MAX_NUM_ROOM_RECOMMENDED - len(recommendations)
-            candidate_rooms = queryRooms({})
+        import random
 
+        candidate_room1 = candidate_rooms[random.randint(0, len(candidate_rooms)-1)]
 
+        candidate_rooms = [c for c in candidate_rooms if c['_id']!=candidate_room1['_id']]
 
-            candidate_rooms = sorted(candidate_rooms, key = lambda x: len(x['users']), reverse=True)
+        out_rooms = [candidate_room1]
 
-            candidate_rooms = [c for c in candidate_rooms if c['name']!='Main Gate']
-            
-            for i in range(len(candidate_rooms)):
-
-                candidate_rooms += [candidate_rooms[i]]*(len(candidate_rooms)//(i+1)-1)
-
-            import random
-
-            candidate_room1 = candidate_rooms[random.randint(0, len(candidate_rooms)-1)]
-
-            candidate_rooms = [c for c in candidate_rooms if c['_id']!=candidate_room1['_id']]
-
+        if(len(candidate_rooms)):
             candidate_room2 = candidate_rooms[random.randint(0, len(candidate_rooms)-1)]
-
             candidate_rooms = [c for c in candidate_rooms if c['_id']!=candidate_room2['_id']]
+            out_rooms.append(candidate_room2)
+            
 
+        if(len(candidate_rooms)):
             candidate_room3 = candidate_rooms[random.randint(0, len(candidate_rooms)-1)]
-
             candidate_rooms = [c for c in candidate_rooms if c['_id']!=candidate_room3['_id']]
+            out_rooms.append(candidate_room3)
 
-            candidate_rooms = [candidate_room1, candidate_room2, candidate_room3]
+        candidate_rooms = out_rooms
 
-            for i in range(rooms_to_add):
-                recommendations.append({
-                    'type':'filler', 
-                    'name': 'Meet new people',
-                    'room': str(candidate_rooms[i]['_id']),
-                    'users': candidate_rooms[i]['users']
-                })
-        
-        recommendations = sorted(recommendations, key= lambda x: len(x['users']) if 'users' in x else -100, reverse=True)
+        for i in range(rooms_to_add):
+            recommendations.append({
+                'type':'filler', 
+                'name': 'Meet new people',
+                'room': str(candidate_rooms[i]['_id']),
+                'users': candidate_rooms[i]['users']
+            })
+    
+    recommendations = sorted(recommendations, key= lambda x: len(x['users']) if 'users' in x else -100, reverse=True)
 
 
     return jsonify(recommendations[:MAX_NUM_ROOM_RECOMMENDED])

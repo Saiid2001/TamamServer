@@ -286,6 +286,7 @@ def socketevents(socketio):
     def on_join(data):
         userid = get_jwt_identity()
         user = queryUsers({'_id':userid})[0]
+        changeUserGroup(userid, 'stand-'+userid) 
         if user['room'] != "NONE":
             leave_room(user['room'])
         room = data['room']
