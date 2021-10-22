@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    body, html{
+        font-family: sans-serif;
+        display: grid;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        justify-content: center;
+        align-content: center;
+        text-align: center;
+    }
+    hr{
+        border:black solid 1px;
+        width: 100%;
+        height: 0px;
+    }
+    form{
+        background-color: rgb(236, 236, 236);
+        padding: 3rem;
+        border-radius: 1rem;
+    }
+    input[type='submit']{
+        background-color: green;
+        color: white;
+        border:none;
+        padding:0.4rem;
+        cursor: pointer;
+    }
+    input[type='text']{
+        padding:0.4rem;
+    }
+    footer{
+        position: fixed;
+        bottom:0;
+        left: 0;
+        right: 0;
+        padding: 1rem;
+    }
+</style>
+<body>
+    <div>
+    <h1>Tamam Development Server</h1>
+    <form action="/getAToken-dev" method="get">
+        <h2>Development Login</h2>
+        <input type="text" placeholder="email" name="email"/>
+        <input type = "submit" value='Login'/>
+    </form>
+</div>
+<footer>
+    Tamam is an Undergraduate Research Project under the funding of MSFEA at AUB.
+</footer>
+</body>
+</html>
+
+

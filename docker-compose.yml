@@ -27,7 +27,7 @@ services:
    - ./api:/api
   restart: always
   environment:
-      APP_ENV: "Dev"
+      APP_ENV: "Test"
       APP_DEBUG: "False"
       APP_PORT: 5001
       MONGODB_DATABASE: flaskdb

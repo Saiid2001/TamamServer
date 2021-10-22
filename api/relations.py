@@ -474,7 +474,7 @@ def recommendGroups():
     
     #course based grouping
     from courses import _getCourseSections, _getCourseByCRN
-    sections = user_data['classes']
+    sections = user_data.get('classes', [])
 
     sections_data = {x:_getCourseByCRN(x) for x in sections}
 

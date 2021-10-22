@@ -92,7 +92,8 @@ def recommendRooms():
 
     exploit_pool = [x['room'] for x in _getRoomVisits(user)]
 
-    exploit_pool.remove(main_gate_id)
+    if main_gate_id in exploit_pool:
+        exploit_pool.remove(main_gate_id)
 
     num_to_exploit = min(len(exploit_pool), num_to_exploit)
 

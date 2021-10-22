@@ -17,6 +17,7 @@ import users
 import mail
 from itsdangerous import URLSafeTimedSerializer
 from datetime import datetime as dt
+import config
 
 bp = Blueprint('auth', __name__)
 
@@ -100,7 +101,7 @@ def login():
 @bp.route('/login-dev')
 def login_dev():
 
-    return '<form action="/getAToken-dev" method="get"><input type="text" placeholder="email" name="email"/><input type = "submit"/></form>'
+    return render_template('login-dev.html')
 
 @bp.route('/request-signup', methods=['POST'])
 def request_signup():
@@ -121,11 +122,17 @@ def request_signup():
             return make_response("User confirmed, please complete your profile", 403)
         else:
             return make_response("User already in database", 403)
-    user = {'email': data['email'], 'firstName': data['firstname'], 'lastName': data['lastname'], 'status': 'pending', 'onlineStatus': 'offline', 'date_created':today.isoformat()}
-    users.addUser(user)
-    user = users.queryUsers({'email': data['email']})[0]
-    confirmation_token = generate_confirmation_token(user['_id'])
-    mail.send_confirmation(user['email'], confirmation_token)
+
+    if config.TESTING: 
+        user = {'email': data['email'], 'firstName': data['firstname'], 'lastName': data['lastname'], 'status': 'confirmed', 'onlineStatus': 'offline', 'date_created':today.isoformat()}
+        users.addUser(user)
+
+    else:
+        user = {'email': data['email'], 'firstName': data['firstname'], 'lastName': data['lastname'], 'status': 'pending', 'onlineStatus': 'offline', 'date_created':today.isoformat()}
+        users.addUser(user)
+        user = users.queryUsers({'email': data['email']})[0]
+        confirmation_token = generate_confirmation_token(user['_id'])
+        mail.send_confirmation(user['email'], confirmation_token)
 
     return bsonify(user)
 
